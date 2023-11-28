@@ -1,0 +1,24 @@
+#Thank you Joe and Swarnava for this wonderful gitignore
+
+# IDE
+**/.vscode/
+
+# Quartus working files
+*.qws
+**/db/
+**/incremental_db/
+
+# Quartus output files
+**/output_files/
+
+# Platform Designer working/output files
+**/.qsys_edit
+**/QSYS_Generated
+
+# Backup files
+*.bak
+
+# ModelSim working files
+**/work/
+**/simulation/
+vsim.wlf

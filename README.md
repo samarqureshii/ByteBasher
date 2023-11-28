@@ -1,7 +1,25 @@
 # ByteBasher
-Our digital take on the classic "Whac-A-Mole" game that uses hand proximity detected by a series of ultrasonic distance sensors on an ESP32-C3 MCU to register hits on a VGA screen, with a De1-SoC FPGA board manading the increasing game difficulty and score updates via Serial Peripheral Communication (SPI).
-### TODO Annie:
-- Install PlatformIO IDE on VSCode
+Our digital take on the classic "Whac-A-Mole" game that uses hand proximity detected by a series of ultrasonic distance sensors on an MCU to register hits on a VGA screen, with a De1-SoC FPGA board manading the increasing game difficulty and score updates.
 
-### TODO Samar:
+## Scuffed Timeline
+No way we pull this off
+### Nov 28
+- Ultrasonic distance sensors fully controlled and communicating with FPGA (Samar)
+- LED indicators for which "grid square" is being hit (Samar)
+- Control mostly coded 
+- Datapath mostly coded 
+### Nov 29
+- Audio coded
+- VGA coded
+- Look into SDRAM
+### Nov 30 
+- Testing VGA 
+- Testing Audio
 - 
+### Nov 1
+### Nov 2
+### Nov 3
+### Nov 4
+All nighter in the lab
+### Nov 5
+Everything needs to be working at this point, final tweaks in the morning
