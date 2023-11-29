@@ -69,9 +69,10 @@ module DisplayCounter (
                 CounterValue <= CounterValue + 1;
                 TensIncrement <= 1'b0; // reset TensIncrement
             end
-        end
         else begin
             TensIncrement <= 1'b0; // ensure TensIncrement is reset
         end
+        end
     end
+
 endmodule
