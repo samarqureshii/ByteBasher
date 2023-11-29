@@ -1,8 +1,10 @@
 # ByteBasher
 Our digital take on the classic "Whac-A-Mole" game that uses hand proximity detected by a series of ultrasonic distance sensors on an MCU to register hits on a VGA screen, with a De1-SoC FPGA board manading the increasing game difficulty and score updates.
 
-## Scuffed Timeline
-No way we pull this off
+## ~~Scuffed~~ Timeline
+~~No way we pull this off~~
+### Uncertainties
+- How did they use 5V digital output to the 3.3V FPGA??????
 ### Nov 28
 - Ultrasonic distance sensors fully controlled and communicating with FPGA (Samar)
 - LED indicators for which "grid square" is being hit (Samar)
@@ -12,7 +14,9 @@ No way we pull this off
 - Audio coded
 - VGA coded
 - Look into SDRAM
+- LFSR randomization algorithm 
 ### Nov 30 
+All nighter in the lab
 - Testing VGA 
 - Testing Audio
 - 

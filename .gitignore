@@ -11,9 +11,9 @@
 # Quartus output files
 **/output_files/
 
-# Platform Designer working/output files
-**/.qsys_edit
-**/QSYS_Generated
+# # Platform Designer working/output files
+# **/.qsys_edit
+# **/QSYS_Generated
 
 # Backup files
 *.bak
