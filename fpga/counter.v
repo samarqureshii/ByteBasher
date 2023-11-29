@@ -20,7 +20,7 @@ module counter
     
     wire Enable;
     wire TensIncrement; // when the tens place will be incremented, and ones place gets reset back to 0
-    wire dummy;
+    wire dummy; //placeholder parameter 
 
     RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, Reset, Speed, Enable);
     DisplayCounter U1(ClockIn, Reset, EN, OnesCounterValue, TensIncrement);
