@@ -3,34 +3,44 @@ Our digital take on the classic "Whac-A-Mole" game that uses hand proximity dete
 
 ## ~~Scuffed~~ Timeline
 ~~No way we pull this off~~
-### Uncertainties
-- ~~How did they use 5V digital output to the 3.3V FPGA??????~~
-- External memory?
-- ~~Cannot do 3 by 3 grid- requires 4 bits of the enable GPIO signal + 12 trig/echo pins~~
+### De1-SoC Master Population List:
+- HEX0, HEX1 (dual place counter)
+- HEX5 (LFSR testing)
+- LEDR [9:0] (binary enable signal from GPIO)
+- GPIO0, GPIO1, GPIO2 (binary read from `digitalWrite` output)
 ### Nov 28
 - ~~Ultrasonic sensors reading and LED indicators for which "grid square" is being hit in binary(Samar)~~
 - Control mostly coded (Samar)
 - Datapath mostly coded (Annie)
-- ~~LFSR randomization algorithm (Samar)~~
-- ~~Dual display counter (Samar)~~
+- ~~LFSR randomization algorithm coded(Samar)~~
+- ~~Dual display counter coded (Samar)~~
 ### Nov 29
 - Test ultrasonic with GPIO pins and pray nothing goes electroboom (Samar)
-- Audio coded
+- Test LFSR (Samar)
+- Test counter (Samar)
+- Audio coded (Samar)
     - Audio RAM
     - Audio Controller
     - `avc`?
+    - Do we need a separate FSM for audio? 
 - VGA mostly coded (Annie)
-- Look into SDRAM
+- Finalize Datapath code (Samar/Annie)
+- Finalize Control code (Samar/Annie)
+- Test `.mif` file on VGA (Annie)
+- Look into double buffering (Samar)
+- Look into SDRAM (Samar)
 
 ### Nov 30 
-
-All nighter in the lab
-
-- 
+All nighter in lab
+- Test VGA with Datapath and Control 
 ### Nov 1
-### Nov 2
-### Nov 3
+### Nov 2 (Saturday)
+- Arrive in lab 8am 
+### Nov 3 (Sunday)
+- Arrive in lab 8am
 ### Nov 4
-All nighter in the lab
+All nighter in lab
+- Film demo video 
+
 ### Nov 5
-Everything needs to be working at this point, final tweaks in the morning
+5pm demo time 

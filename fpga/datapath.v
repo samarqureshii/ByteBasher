@@ -1,0 +1,1 @@
+//control signals for each of the 4 boxes, determine which was "hit" from binary enable and check if that box is populated at the same time 

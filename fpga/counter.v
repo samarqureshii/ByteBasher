@@ -1,8 +1,8 @@
 //two 7 segment bit counters to display to the user the time left on the game
-module toplevel (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1);
+module toplevel_counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
     wire [3:0] onesValue, tensValue;
 
-    twoPlaceCounter #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
+    counter #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
     
     hex_decoder hd_ones (onesValue, HEX0); //ones place (HEX0)
     hex_decoder hd_tens (tensValue, HEX1); //tens place (HEX1)
@@ -10,7 +10,7 @@ endmodule
 
 
 
-module twoPlaceCounter
+module counter
     #(parameter CLOCK_FREQUENCY = 50000000)(
     input ClockIn,
     input Reset,
@@ -73,4 +73,22 @@ module DisplayCounter (
             end
         end
     end
+endmodule
+
+module hex_decoder(c, display);
+    input [3:0] c;
+    output [6:0] display;
+    
+    assign c0 = c[0];
+    assign c1 = c[1];
+    assign c2 = c[2];
+    assign c3 = c[3];
+
+    assign display[0] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
+    assign display[1] = (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
+    assign display[2] = (~c3 & ~c2 & c1 & ~c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);	
+    assign display[3] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0) + (c3 & ~c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
+    assign display[4] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0);
+    assign display[5] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & ~c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
+    assign display[6] = (~c3 & ~c2 & ~c1 & ~c0) + (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0);
 endmodule
