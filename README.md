@@ -4,21 +4,28 @@ Our digital take on the classic "Whac-A-Mole" game that uses hand proximity dete
 ## ~~Scuffed~~ Timeline
 ~~No way we pull this off~~
 ### Uncertainties
-- How did they use 5V digital output to the 3.3V FPGA??????
+- ~~How did they use 5V digital output to the 3.3V FPGA??????~~
+- External memory?
+- ~~Cannot do 3 by 3 grid- requires 4 bits of the enable GPIO signal + 12 trig/echo pins~~
 ### Nov 28
-- Ultrasonic distance sensors fully controlled and communicating with FPGA (Samar)
-- LED indicators for which "grid square" is being hit (Samar)
-- Control mostly coded 
-- Datapath mostly coded 
+- ~~Ultrasonic sensors reading and LED indicators for which "grid square" is being hit in binary(Samar)~~
+- Control mostly coded (Samar)
+- Datapath mostly coded (Annie)
+- ~~LFSR randomization algorithm (Samar)~~
+- ~~Dual display counter (Samar)~~
 ### Nov 29
+- Test ultrasonic with GPIO pins and pray nothing goes electroboom (Samar)
 - Audio coded
-- VGA coded
+    - Audio RAM
+    - Audio Controller
+    - `avc`?
+- VGA mostly coded (Annie)
 - Look into SDRAM
-- LFSR randomization algorithm 
+
 ### Nov 30 
+
 All nighter in the lab
-- Testing VGA 
-- Testing Audio
+
 - 
 ### Nov 1
 ### Nov 2
