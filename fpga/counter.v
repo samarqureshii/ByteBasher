@@ -1,8 +1,7 @@
 //two 7 segment bit counters to display to the user the time left on the game
-module toplevel_counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
+module counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
     wire [3:0] onesValue, tensValue;
-
-    counter #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
+    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
     
     hex_decoder hd_ones (onesValue, HEX0); //ones place (HEX0)
     hex_decoder hd_tens (tensValue, HEX1); //tens place (HEX1)
@@ -10,7 +9,7 @@ endmodule
 
 
 
-module counter
+module counter_m
     #(parameter CLOCK_FREQUENCY = 50000000)(
     input ClockIn,
     input Reset,
@@ -22,8 +21,8 @@ module counter
     wire TensIncrement; // when the tens place will be incremented, and ones place gets reset back to 0
     wire dummy; //placeholder parameter 
 
-    RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, Reset, Speed, Enable);
-    DisplayCounter U1(ClockIn, Reset, EN, OnesCounterValue, TensIncrement);
+    RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, Reset, Enable);
+    DisplayCounter U1(ClockIn, Reset, Enable, OnesCounterValue, TensIncrement);
     DisplayCounter U2(ClockIn, Reset, TensIncrement, TensCounterValue, dummy);
 
 endmodule
@@ -54,41 +53,25 @@ module DisplayCounter (
     input Reset,
     input EnableDC,
     output reg [3:0] CounterValue,
-    output reg incrementTens); //increment the MSB (hex1 counter)
+    output reg TensIncrement); // increment the tens place (HEX1 counter)
 
     always @(posedge Clock) begin
         if (Reset) begin
             CounterValue <= 4'b0000;
-            IncrementNext <= 1'b0;
+            TensIncrement <= 1'b0;
         end
         else if (EnableDC) begin
-            if (CounterValue == 4'b1001)
-            begin //hit 9 , need to reset back to 0 and increment the other display
+            if (CounterValue == 4'b1001) begin // reached 9
                 CounterValue <= 4'b0000;
-                incrementTens <= 1'b1; 
+                TensIncrement <= 1'b1; // signal to increment next counter
             end
             else begin
                 CounterValue <= CounterValue + 1;
-                incrementTens <= 1'b0;
+                TensIncrement <= 1'b0; // reset TensIncrement
             end
         end
+        else begin
+            TensIncrement <= 1'b0; // ensure TensIncrement is reset
+        end
     end
-endmodule
-
-module hex_decoder(c, display);
-    input [3:0] c;
-    output [6:0] display;
-    
-    assign c0 = c[0];
-    assign c1 = c[1];
-    assign c2 = c[2];
-    assign c3 = c[3];
-
-    assign display[0] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
-    assign display[1] = (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
-    assign display[2] = (~c3 & ~c2 & c1 & ~c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);	
-    assign display[3] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0) + (c3 & ~c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
-    assign display[4] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0);
-    assign display[5] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & ~c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
-    assign display[6] = (~c3 & ~c2 & ~c1 & ~c0) + (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0);
 endmodule
