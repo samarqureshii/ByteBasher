@@ -1,9 +1,7 @@
 `timescale 1ns / 1ns
 
-module input_receiver(GPIO_0, GPIO_1, GPIO_2, LEDR);
+module toplevel(GPIO_0, LEDR);
     input [0:0] GPIO_0;  
-    input [0:0] GPIO_1; 
-    input [0:0] GPIO_2;  
     output [9:0] LEDR;  
 
     // first three LEDs to the GPIO inputs so we know the binary value
