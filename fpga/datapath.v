@@ -1,6 +1,6 @@
 module datapath (
     input go, clock, reset,
-    input [3:0] box_address, // input from ultrasonic sensors
+    input [2:0] box_address, // input from ultrasonic sensors ( 3 bit binary value)
     output audio_en,
     output reg [8:0] board_out,
     output reg ld_level_draw_comp,
@@ -46,11 +46,11 @@ module datapath (
 
             // xox population logic based on LFSR
             case (random_number[3:0])
-                4'b0001: populated_box <= 4'b0001; // Box 1
-                4'b0010: populated_box <= 4'b0010; // Box 2
-                4'b1000: populated_box <= 4'b1000; // Box 4
-                4'b0100: populated_box <= 4'b0101; // Box 5
-                default: populated_box <= 4'b0000; // No box
+                4'b0001: populated_box <= 3'b001; // Box 1
+                4'b0010: populated_box <= 3'b010; // Box 2
+                4'b1000: populated_box <= 3'b100; // Box 4
+                4'b0100: populated_box <= 3'b101; // Box 5
+                default: populated_box <= 3'b000; // No box
             endcase
 
             // update board_out based on RAM content
