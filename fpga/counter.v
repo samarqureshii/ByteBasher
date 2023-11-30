@@ -1,30 +1,12 @@
 //two 7 segment bit counters to display to the user the time left on the game
-module counter (
-    input CLOCK_50,
-    input [9:0] SW,
-    input [3:0] KEY,
-    output [6:0] HEX0,
-    output [6:0] HEX1
-);
+module counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
     wire [3:0] onesValue, tensValue;
-    wire userReset;
-
-    // KEY[0] is active low, so invert it to use as a reset signal
-    assign userReset = ~KEY[0];
-
-    // Instantiate counter_m with userReset as an additional reset signal
-    counter_m #(50000000) ctpm (
-        .ClockIn(CLOCK_50),
-        .Reset(userReset),
-        .Speed(SW[1:0]),
-        .OnesCounterValue(onesValue),
-        .TensCounterValue(tensValue)
-    );
-
-    // Instantiate hex decoders for displaying values
-    hex_decoder hd_ones(onesValue, HEX0);
-    hex_decoder hd_tens(tensValue, HEX1);
+    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
+    
+    hex_decoder hd_ones (onesValue, HEX0); //ones place (HEX0)
+    hex_decoder hd_tens (tensValue, HEX1); //tens place (HEX1)
 endmodule
+
 
 
 module counter_m
@@ -36,33 +18,14 @@ module counter_m
     output [3:0] TensCounterValue);
     
     wire Enable;
-    wire TensIncrement;
-    wire Reached60; // Signal to indicate if 60 is reached
+    wire TensIncrement; // when the tens place will be incremented, and ones place gets reset back to 0
+    wire dummy; //placeholder parameter 
 
     RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, Reset, Enable);
-
-    // Display counter for the ones place
-    DisplayCounter U1(
-        .Clock(ClockIn), 
-        .Reset(Reset), 
-        .EnableDC(Enable), 
-        .CounterValue(OnesCounterValue), 
-        .TensIncrement(TensIncrement), 
-        .Reached60() // Not used in the ones counter
-    );
-
-    // Display counter for the tens place
-    DisplayCounter U2(
-        .Clock(ClockIn), 
-        .Reset(Reset), 
-        .EnableDC(TensIncrement), 
-        .CounterValue(TensCounterValue), 
-        .TensIncrement(), // Not used in the tens counter
-        .Reached60(Reached60) // Connected to check if 60 is reached
-    );
+    DisplayCounter U1(ClockIn, Reset, Enable, OnesCounterValue, TensIncrement);
+    DisplayCounter U2(ClockIn, Reset, TensIncrement, TensCounterValue, dummy);
 
 endmodule
-
 
 module RateDivider #(parameter FREQUENCY = 50000000) (
     input ClockIn, 
@@ -90,30 +53,29 @@ module DisplayCounter (
     input Reset,
     input EnableDC,
     output reg [3:0] CounterValue,
-    output reg TensIncrement,
-    output reg Reached60); // new signal to indicate if 60 is reached
+    output reg TensIncrement); // increment the tens place (HEX1 counter)
 
     always @(posedge Clock) begin
         if (Reset) begin
             CounterValue <= 4'b0000;
             TensIncrement <= 1'b0;
-            Reached60 <= 1'b0;
-        end else if (EnableDC && !Reached60) begin // check if 60 is not yet reached
-            if (CounterValue == 4'b1001) begin
+        end
+        else if (EnableDC) begin
+            if (CounterValue == 4'b1001) begin // reached 9
                 CounterValue <= 4'b0000;
-                TensIncrement <= 1'b1;
-                if (TensIncrement && CounterValue == 4'b0110) begin
-                    Reached60 <= 1'b1; // Set Reached60 when tens counter is 6 and ones counter is 9
-                end
-            end else begin
-                CounterValue <= CounterValue + 1;
-                TensIncrement <= 1'b0;
+                TensIncrement <= 1'b1; // signal to increment next counter
             end
+            else begin
+                CounterValue <= CounterValue + 1;
+                TensIncrement <= 1'b0; // reset TensIncrement
+            end
+        else begin
+            TensIncrement <= 1'b0; // ensure TensIncrement is reset
+        end
         end
     end
+
 endmodule
-
-
 
 module hex_decoder(c, display);
     input [3:0] c;
