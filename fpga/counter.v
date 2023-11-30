@@ -69,30 +69,31 @@ module DisplayCounter (
     reg Reached60;
 
     always @* begin
-        if (CounterValue == 4'b1001) {
+        if (CounterValue == 4'b1001) begin
             nextCounterValue = 4'b0000;
             TensIncrement = 1'b1;
-            if (Reached60) {
-                StopCounter = 1'b1;  // Stop counter when 60 is reached
-            }
-        } else {
+        end else begin
             nextCounterValue = CounterValue + 1;
             TensIncrement = 1'b0;
-        }
+        end
 
-        Reached60 = (CounterValue == 4'b0110);
+        // Logic to check if 60 seconds have been reached
+        if (CounterValue == 4'b0110 && TensIncrement) begin
+            Reached60 = 1'b1;
+        end
     end
 
     always @(posedge CLOCK) begin
-        if (RESET || Reached60) {
+        if (RESET || Reached60) begin
             CounterValue <= 4'b0000;
             StopCounter <= 1'b0;
             Reached60 <= 1'b0;
-        } else if (EnableDC && !StopCounter) {
+        end else if (EnableDC && !StopCounter) begin
             CounterValue <= nextCounterValue;
-        }
+        end
     end
 endmodule
+
 
 
 
