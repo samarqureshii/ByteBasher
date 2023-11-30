@@ -25,12 +25,13 @@ module counter_m
     wire Enable;
     wire TensIncrement;
     wire StopCounter;
+    wire dummy
 
     wire resetCounters = |Reset;
 
     RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, resetCounters, Enable);
     DisplayCounter onesCounter (ClockIn, resetCounters, Enable, OnesCounterValue, TensIncrement, StopCounter);
-    DisplayCounter tensCounter (ClockIn, resetCounters | StopCounter, TensIncrement, TensCounterValue, /* Unused */, StopCounter);
+    DisplayCounter tensCounter (ClockIn, resetCounters | StopCounter, TensIncrement, TensCounterValue, dummy, StopCounter);
 
 endmodule
 
@@ -63,15 +64,15 @@ module DisplayCounter (
     input EnableDC,
     output reg [3:0] CounterValue,
     output reg TensIncrement,
-    output reg StopCounter  // Indicates if counter should stop
+    output reg stopCounter  // Indicates if counter should stop
 );
     reg [3:0] nextCounterValue;
-    reg Reached60; // This variable should be driven by only one always block
+    reg Reached60;
 
     always @(posedge CLOCK) begin
         if (RESET) begin
             CounterValue <= 4'b0000;
-            StopCounter <= 1'b0;
+            stopCounter <= 1'b0;
             Reached60 <= 1'b0;
         end else if (EnableDC) begin
             if (CounterValue == 4'b1001) begin
@@ -79,7 +80,6 @@ module DisplayCounter (
                 TensIncrement = 1'b1;
                 if (CounterValue == 4'b0110) begin
                     Reached60 = 1'b1;
-                    StopCounter = 1'b1;
                 end
             end else begin
                 nextCounterValue = CounterValue + 1;
@@ -87,10 +87,13 @@ module DisplayCounter (
             end
             if (!Reached60) begin
                 CounterValue <= nextCounterValue;
+            end else if (!stopCounter) begin
+                stopCounter = 1'b1; // Only set StopCounter once when 60 is reached
             end
         end
     end
 endmodule
+
 
 
 module hex_decoder(c, display);
