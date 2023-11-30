@@ -5,6 +5,9 @@
 
 # Quartus working files
 *.qws
+*.qip
+*.cnx
+*.cnxerr
 **/db/
 **/incremental_db/
 
