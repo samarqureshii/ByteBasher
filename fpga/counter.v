@@ -24,14 +24,13 @@ module counter_m
 
     wire Enable;
     wire TensIncrement;
-    wire Reached60;
+    wire StopCounter;
 
-    // when SW[1:0] is high, we want to reset the counter back to 0 
     wire resetCounters = |Reset;
 
     RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, resetCounters, Enable);
-    DisplayCounter onesCounter (ClockIn, resetCounters, Enable, OnesCounterValue, TensIncrement, /* Reached60 unused */);
-    DisplayCounter tensCounter (ClockIn, resetCounters, TensIncrement, TensCounterValue, /* TensIncrement unused */, Reached60); 
+    DisplayCounter onesCounter (ClockIn, resetCounters, Enable, OnesCounterValue, TensIncrement, StopCounter);
+    DisplayCounter tensCounter (ClockIn, resetCounters | StopCounter, TensIncrement, TensCounterValue, /* Unused */, StopCounter);
 
 endmodule
 
@@ -64,32 +63,38 @@ module DisplayCounter (
     input EnableDC,
     output reg [3:0] CounterValue,
     output reg TensIncrement,
-    output reg Reached60
+    output reg StopCounter  // Indicates if counter should stop
 );
     reg [3:0] nextCounterValue;
+    reg Reached60;
 
     always @* begin
-        if (CounterValue == 4'b1001) begin // reached 9
+        if (CounterValue == 4'b1001) {
             nextCounterValue = 4'b0000;
             TensIncrement = 1'b1;
-        end else begin
+            if (Reached60) {
+                StopCounter = 1'b1;  // Stop counter when 60 is reached
+            }
+        } else {
             nextCounterValue = CounterValue + 1;
             TensIncrement = 1'b0;
-        end
+        }
 
-        // Determine if 60 is reached in the tens counter
         Reached60 = (CounterValue == 4'b0110);
     end
 
     always @(posedge CLOCK) begin
-        if (RESET || Reached60) begin
+        if (RESET || Reached60) {
             CounterValue <= 4'b0000;
-        end
-        else if (EnableDC) begin
+            StopCounter <= 1'b0;
+            Reached60 <= 1'b0;
+        } else if (EnableDC && !StopCounter) {
             CounterValue <= nextCounterValue;
-        end
+        }
     end
 endmodule
+
+
 
 
 
