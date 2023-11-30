@@ -1,57 +1,66 @@
 //two 7 segment bit counters to display to the user the time left on the game
-module counter (
-    input CLOCK_50, 
-    input [9:0] SW, 
-    output [6:0] HEX0, 
-    output [6:0] HEX1
-); 
+module counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
     wire [3:0] onesValue, tensValue;
+    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
     
-    // Pass SW[1:0] to the counter_m module to reset the counters
-    counter_m #(50000000) tpc (CLOCK_50, SW[1:0], onesValue, tensValue);
-    
-    hex_decoder hd_ones (onesValue, HEX0);
-    hex_decoder hd_tens (tensValue, HEX1);
+    hex_decoder hd_ones (onesValue, HEX0); //ones place (HEX0)
+    hex_decoder hd_tens (tensValue, HEX1); //tens place (HEX1)
 endmodule
+
 
 
 module counter_m
     #(parameter CLOCK_FREQUENCY = 50000000)(
     input ClockIn,
     input Reset,
+    input [1:0] Speed,
     output [3:0] OnesCounterValue,
     output [3:0] TensCounterValue);
-
+    
     wire Enable;
     wire TensIncrement;
-    wire StopCounter;
-    wire dummy
+    wire Reached60; // Signal to indicate if 60 is reached
 
-    wire resetCounters = |Reset;
+    RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, Reset, Enable);
 
-    RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, resetCounters, Enable);
-    DisplayCounter onesCounter (ClockIn, resetCounters, Enable, OnesCounterValue, TensIncrement, StopCounter);
-    DisplayCounter tensCounter (ClockIn, resetCounters | StopCounter, TensIncrement, TensCounterValue, dummy, StopCounter);
+    // Display counter for the ones place
+    DisplayCounter U1(
+        .Clock(ClockIn), 
+        .Reset(Reset), 
+        .EnableDC(Enable), 
+        .CounterValue(OnesCounterValue), 
+        .TensIncrement(TensIncrement), 
+        .Reached60() // Not used in the ones counter
+    );
+
+    // Display counter for the tens place
+    DisplayCounter U2(
+        .Clock(ClockIn), 
+        .Reset(Reset), 
+        .EnableDC(TensIncrement), 
+        .CounterValue(TensCounterValue), 
+        .TensIncrement(), // Not used in the tens counter
+        .Reached60(Reached60) // Connected to check if 60 is reached
+    );
 
 endmodule
-
 
 
 module RateDivider #(parameter FREQUENCY = 50000000) (
     input ClockIn, 
     input Reset,
-    output reg enable);
+    output reg Enable);
 
     reg [26:0] downCount; //prob should use the log function
 
     always @(posedge ClockIn) begin
         if(Reset || downCount == 0) begin
-            enable <= 1'b1;
+            Enable <= 1'b1;
             downCount <= FREQUENCY - 1; // count down from 50 000 000 for 1 second
         end 
         else begin
             downCount <= downCount - 1;
-            enable <= 0;
+            Enable <= 0;
         end
     end
 endmodule
@@ -59,41 +68,34 @@ endmodule
 
 
 module DisplayCounter (
-    input CLOCK,
-    input RESET,
+    input Clock,
+    input Reset,
     input EnableDC,
     output reg [3:0] CounterValue,
     output reg TensIncrement,
-    output reg stopCounter  // Indicates if counter should stop
-);
-    reg [3:0] nextCounterValue;
-    reg Reached60;
+    output reg Reached60); // new signal to indicate if 60 is reached
 
-    always @(posedge CLOCK) begin
-        if (RESET) begin
+    always @(posedge Clock) begin
+        if (Reset) begin
             CounterValue <= 4'b0000;
-            stopCounter <= 1'b0;
+            TensIncrement <= 1'b0;
             Reached60 <= 1'b0;
-        end else if (EnableDC) begin
+        end else if (EnableDC && !Reached60) begin // check if 60 is not yet reached
             if (CounterValue == 4'b1001) begin
-                nextCounterValue = 4'b0000;
-                TensIncrement = 1'b1;
-                if (CounterValue == 4'b0110) begin
-                    Reached60 = 1'b1;
-                end
+                CounterValue <= 4'b0000;
+                TensIncrement <= 1'b1;
             end else begin
-                nextCounterValue = CounterValue + 1;
-                TensIncrement = 1'b0;
-            end
-            if (!Reached60) begin
-                CounterValue <= nextCounterValue;
-            end else if (!stopCounter) begin
-                stopCounter = 1'b1; // Only set StopCounter once when 60 is reached
+                CounterValue <= CounterValue + 1;
+                TensIncrement <= 1'b0;
             end
         end
     end
-endmodule
 
+    // logic to set Reached60 when the total count reaches 60
+    always @(posedge TensIncrement) begin
+        if (CounterValue == 4'b0110) Reached60 <= 1'b1; // When tens place is 6
+    end
+endmodule
 
 
 module hex_decoder(c, display);
@@ -113,4 +115,3 @@ module hex_decoder(c, display);
     assign display[5] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & ~c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
     assign display[6] = (~c3 & ~c2 & ~c1 & ~c0) + (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0);
 endmodule
-
