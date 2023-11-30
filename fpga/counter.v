@@ -1,12 +1,30 @@
 //two 7 segment bit counters to display to the user the time left on the game
-module counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
+module counter (
+    input CLOCK_50,
+    input [9:0] SW,
+    input [3:0] KEY,
+    output [6:0] HEX0,
+    output [6:0] HEX1
+);
     wire [3:0] onesValue, tensValue;
-    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
-    
-    hex_decoder hd_ones (onesValue, HEX0); //ones place (HEX0)
-    hex_decoder hd_tens (tensValue, HEX1); //tens place (HEX1)
-endmodule
+    wire userReset;
 
+    // KEY[0] is active low, so invert it to use as a reset signal
+    assign userReset = ~KEY[0];
+
+    // Instantiate counter_m with userReset as an additional reset signal
+    counter_m #(50000000) ctpm (
+        .ClockIn(CLOCK_50),
+        .Reset(userReset),
+        .Speed(SW[1:0]),
+        .OnesCounterValue(onesValue),
+        .TensCounterValue(tensValue)
+    );
+
+    // Instantiate hex decoders for displaying values
+    hex_decoder hd_ones(onesValue, HEX0);
+    hex_decoder hd_tens(tensValue, HEX1);
+endmodule
 
 
 module counter_m
