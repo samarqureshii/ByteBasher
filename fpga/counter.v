@@ -15,8 +15,6 @@ module counter (
 endmodule
 
 
-
-
 module counter_m
     #(parameter CLOCK_FREQUENCY = 50000000)(
     input ClockIn,
@@ -31,7 +29,7 @@ module counter_m
     wire Enable;
     wire TensIncrement, Reached60;
 
-    // when SW[1:0] is high
+    // when SW[1:0] is high, we want to reset the counter back to 0 
     wire resetCounters = |Reset;
 
     RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, resetCounters, Enable);
@@ -44,18 +42,18 @@ endmodule
 module RateDivider #(parameter FREQUENCY = 50000000) (
     input ClockIn, 
     input Reset,
-    output reg Enable);
+    output reg enable);
 
     reg [26:0] downCount; //prob should use the log function
 
     always @(posedge ClockIn) begin
         if(Reset || downCount == 0) begin
-            Enable <= 1'b1;
+            enable <= 1'b1;
             downCount <= FREQUENCY - 1; // count down from 50 000 000 for 1 second
         end 
         else begin
             downCount <= downCount - 1;
-            Enable <= 0;
+            enable <= 0;
         end
     end
 endmodule
@@ -63,8 +61,8 @@ endmodule
 
 
 module DisplayCounter (
-    input Clock,
-    input Reset,
+    input CLOCK,
+    input RESET,
     input EnableDC,
     output reg [3:0] CounterValue,
     output reg TensIncrement,
@@ -85,8 +83,8 @@ module DisplayCounter (
         Reached60 = (CounterValue == 4'b0110);
     end
 
-    always @(posedge Clock) begin
-        if (Reset || Reached60) begin
+    always @(posedge CLOCK) begin
+        if (RESET || Reached60) begin
             CounterValue <= 4'b0000;
         end
         else if (EnableDC) begin
