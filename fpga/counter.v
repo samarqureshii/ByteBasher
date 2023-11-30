@@ -1,11 +1,19 @@
 //two 7 segment bit counters to display to the user the time left on the game
-module counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
+module counter (
+    input CLOCK_50, 
+    input [9:0] SW, 
+    output [6:0] HEX0, 
+    output [6:0] HEX1
+); 
     wire [3:0] onesValue, tensValue;
-    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
     
-    hex_decoder hd_ones (onesValue, HEX0); //ones place (HEX0)
-    hex_decoder hd_tens (tensValue, HEX1); //tens place (HEX1)
+    // Pass SW[1:0] to the counter_m module to reset the counters
+    counter_m #(50000000) tpc (CLOCK_50, SW[1:0], onesValue, tensValue);
+    
+    hex_decoder hd_ones (onesValue, HEX0);
+    hex_decoder hd_tens (tensValue, HEX1);
 endmodule
+
 
 
 
@@ -16,16 +24,22 @@ module counter_m
     input [1:0] Speed,
     output [3:0] OnesCounterValue,
     output [3:0] TensCounterValue);
-    
-    wire Enable;
-    wire TensIncrement; // when the tens place will be incremented, and ones place gets reset back to 0
-    wire dummy; //placeholder parameter 
 
-    RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, Reset, Enable);
-    DisplayCounter U1(ClockIn, Reset, Enable, OnesCounterValue, TensIncrement);
-    DisplayCounter U2(ClockIn, Reset, TensIncrement, TensCounterValue, dummy);
+    wire Enable;
+    wire TensIncrement; 
+
+    wire Enable;
+    wire TensIncrement, Reached60;
+
+    // when SW[1:0] is high
+    wire resetCounters = |Reset;
+
+    RateDivider #(CLOCK_FREQUENCY) U0(ClockIn, resetCounters, Enable);
+    DisplayCounter onesCounter (ClockIn, resetCounters, Enable, OnesCounterValue, TensIncrement, /* Reached60 unused */);
+    DisplayCounter tensCounter (ClockIn, resetCounters, TensIncrement, TensCounterValue, /* TensIncrement unused */, Reached60); 
 
 endmodule
+
 
 module RateDivider #(parameter FREQUENCY = 50000000) (
     input ClockIn, 
@@ -53,31 +67,38 @@ module DisplayCounter (
     input Reset,
     input EnableDC,
     output reg [3:0] CounterValue,
-    output reg TensIncrement); // increment the tens place (HEX1 counter)
+    output reg TensIncrement,
+    output reg Reached60
+);
+    reg [3:0] nextCounterValue;
 
-    always @(posedge Clock) begin
-        if (Reset) begin
-            CounterValue <= 4'b0000;
-            TensIncrement <= 1'b0;
+    always @* begin
+        if (CounterValue == 4'b1001) begin // reached 9
+            nextCounterValue = 4'b0000;
+            TensIncrement = 1'b1;
+        end else begin
+            nextCounterValue = CounterValue + 1;
+            TensIncrement = 1'b0;
         end
-        else if (EnableDC) begin
-            if (CounterValue == 4'b1001) begin // reached 9
-                CounterValue <= 4'b0000;
-                TensIncrement <= 1'b1; // signal to increment next counter
-            end
-			
-            else begin
-                CounterValue <= CounterValue + 1;
-                TensIncrement <= 1'b0; // reset TensIncrement
-            end
-			end
-        else begin
-            TensIncrement <= 1'b0; // ensure TensIncrement is reset
-        end
-       
+
+        // Determine if 60 is reached in the tens counter
+        Reached60 = (CounterValue == 4'b0110);
     end
 
+    always @(posedge Clock) begin
+        if (Reset || Reached60) begin
+            CounterValue <= 4'b0000;
+        end
+        else if (EnableDC) begin
+            CounterValue <= nextCounterValue;
+        end
+    end
 endmodule
+
+
+
+
+
 module hex_decoder(c, display);
     input [3:0] c;
     output [6:0] display;

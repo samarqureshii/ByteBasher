@@ -1,6 +1,6 @@
 `timescale 1ns / 1ns
 
-module toplevel(GPIO_1, LEDR);
+module read_sensor(GPIO_1, LEDR);
     input [2:0] GPIO_1;  // Declare GPIO_1 as a 3-bit input
     output [9:0] LEDR;  
 

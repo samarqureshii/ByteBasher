@@ -7,7 +7,7 @@
 // States 110 map to Box 3
 // State 111 maps to Box 4
 
-module toplevel_lfsr(input CLOCK_50, output HEX5[6:0]); //use this to test randomization algorithm on the HEX
+module lfsr(input CLOCK_50, output HEX5[6:0]); //use this to test randomization algorithm on the HEX
 //feed the out of the lfsr into the hex decoder, should generate random values of 1,2,3, or 4, and display on the hex
 wire [3:0] out;
 hex_decoder hd_lfsr(out, HEX5);
