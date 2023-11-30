@@ -66,39 +66,31 @@ module DisplayCounter (
     output reg StopCounter  // Indicates if counter should stop
 );
     reg [3:0] nextCounterValue;
-    reg Reached60;
-
-    always @* begin
-        if (CounterValue == 4'b1001) begin
-            nextCounterValue = 4'b0000;
-            TensIncrement = 1'b1;
-        end else begin
-            nextCounterValue = CounterValue + 1;
-            TensIncrement = 1'b0;
-        end
-
-        // Logic to check if 60 seconds have been reached
-        if (CounterValue == 4'b0110 && TensIncrement) begin
-            Reached60 = 1'b1;
-        end
-    end
+    reg Reached60; // This variable should be driven by only one always block
 
     always @(posedge CLOCK) begin
-        if (RESET || Reached60) begin
+        if (RESET) begin
             CounterValue <= 4'b0000;
             StopCounter <= 1'b0;
             Reached60 <= 1'b0;
-        end else if (EnableDC && !StopCounter) begin
-            CounterValue <= nextCounterValue;
+        end else if (EnableDC) begin
+            if (CounterValue == 4'b1001) begin
+                nextCounterValue = 4'b0000;
+                TensIncrement = 1'b1;
+                if (CounterValue == 4'b0110) begin
+                    Reached60 = 1'b1;
+                    StopCounter = 1'b1;
+                end
+            end else begin
+                nextCounterValue = CounterValue + 1;
+                TensIncrement = 1'b0;
+            end
+            if (!Reached60) begin
+                CounterValue <= nextCounterValue;
+            end
         end
     end
 endmodule
-
-
-
-
-
-
 
 
 module hex_decoder(c, display);
