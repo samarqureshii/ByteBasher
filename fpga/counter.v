@@ -19,15 +19,12 @@ module counter_m
     #(parameter CLOCK_FREQUENCY = 50000000)(
     input ClockIn,
     input Reset,
-    input [1:0] Speed,
     output [3:0] OnesCounterValue,
     output [3:0] TensCounterValue);
 
     wire Enable;
-    wire TensIncrement; 
-
-    wire Enable;
-    wire TensIncrement, Reached60;
+    wire TensIncrement;
+    wire Reached60;
 
     // when SW[1:0] is high, we want to reset the counter back to 0 
     wire resetCounters = |Reset;
@@ -37,6 +34,7 @@ module counter_m
     DisplayCounter tensCounter (ClockIn, resetCounters, TensIncrement, TensCounterValue, /* TensIncrement unused */, Reached60); 
 
 endmodule
+
 
 
 module RateDivider #(parameter FREQUENCY = 50000000) (
