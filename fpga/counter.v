@@ -65,18 +65,19 @@ module DisplayCounter (
                 CounterValue <= 4'b0000;
                 TensIncrement <= 1'b1; // signal to increment next counter
             end
+			
             else begin
                 CounterValue <= CounterValue + 1;
                 TensIncrement <= 1'b0; // reset TensIncrement
             end
+			end
         else begin
             TensIncrement <= 1'b0; // ensure TensIncrement is reset
         end
-        end
+       
     end
 
 endmodule
-
 module hex_decoder(c, display);
     input [3:0] c;
     output [6:0] display;
@@ -94,3 +95,4 @@ module hex_decoder(c, display);
     assign display[5] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & ~c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
     assign display[6] = (~c3 & ~c2 & ~c1 & ~c0) + (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0);
 endmodule
+

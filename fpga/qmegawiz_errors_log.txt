@@ -1,0 +1,19 @@
+
+
+C:/DESL/Quartus18/vga_pll.v
+
+Nov 29 01PM:48:53>: Error in CNX file format.
+
+Error messages are listed in file
+C:/DESL/Quartus18/vga_pll.cnxerr.
+
+Can't create the custom megafunction variation file(s)
+
+C:/DESL/Quartus18/vga_pll.v
+
+Nov 29 01PM:49:58>: Error in CNX file format.
+
+Error messages are listed in file
+C:/DESL/Quartus18/vga_pll.cnxerr.
+
+Can't create the custom megafunction variation file(s)
