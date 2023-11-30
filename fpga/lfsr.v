@@ -7,7 +7,10 @@
 // States 110 map to Box 3
 // State 111 maps to Box 4
 
-module toplevel_lfsr(input CLOCK_50, input KEY, output [6:0] HEX5);
+module lfsr(CLOCK_50, KEY, HEX0);
+input CLOCK_50;
+input [3:0] KEY;
+output [6:0] HEX0;
     wire [2:0] lfsr_out;
     wire [3:0] hex_input;
 
@@ -17,7 +20,7 @@ module toplevel_lfsr(input CLOCK_50, input KEY, output [6:0] HEX5);
 
     assign hex_input = {1'b0, lfsr_out};  // Adding a leading zero
 
-    hex_decoder hd_lfsr(hex_input, HEX5);
+    hex_decoder hd_lfsr(hex_input, HEX0);
 endmodule
 
 
@@ -50,7 +53,7 @@ module hex_decoder(c, display);
 
     assign display[0] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
     assign display[1] = (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
-    assign display[2] = (~c3 & ~c2 & c1 & ~c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);	
+    assign display[2] = (~c3 & ~c2 & c1 & ~c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0); 
     assign display[3] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0) + (c3 & ~c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
     assign display[4] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0);
     assign display[5] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & ~c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
