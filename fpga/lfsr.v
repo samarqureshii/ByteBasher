@@ -7,11 +7,20 @@
 // States 110 map to Box 3
 // State 111 maps to Box 4
 
-module lfsr(input CLOCK_50, output HEX5[6:0]); //use this to test randomization algorithm on the HEX
-//feed the out of the lfsr into the hex decoder, should generate random values of 1,2,3, or 4, and display on the hex
-wire [3:0] out;
-hex_decoder hd_lfsr(out, HEX5);
+module toplevel_lfsr(input CLOCK_50, input KEY, output [6:0] HEX5);
+    wire [2:0] lfsr_out;
+    wire [3:0] hex_input;
+
+    wire reset_signal = ~KEY[0]; // invert active low 
+
+    lfsr_3bit lfsr (.out(lfsr_out), .enable(1'b1), .clk(CLOCK_50), .reset(reset_signal));
+
+    assign hex_input = {1'b0, lfsr_out};  // Adding a leading zero
+
+    hex_decoder hd_lfsr(hex_input, HEX5);
 endmodule
+
+
 
 module lfsr_3bit (out, enable, clk, reset); //determine which of the squares the "mole" will appear in 
     output reg [2:0] out;
