@@ -84,18 +84,17 @@ module DisplayCounter (
             if (CounterValue == 4'b1001) begin
                 CounterValue <= 4'b0000;
                 TensIncrement <= 1'b1;
+                if (TensIncrement && CounterValue == 4'b0110) begin
+                    Reached60 <= 1'b1; // Set Reached60 when tens counter is 6 and ones counter is 9
+                end
             end else begin
                 CounterValue <= CounterValue + 1;
                 TensIncrement <= 1'b0;
             end
         end
     end
-
-    // logic to set Reached60 when the total count reaches 60
-    always @(posedge TensIncrement) begin
-        if (CounterValue == 4'b0110) Reached60 <= 1'b1; // When tens place is 6
-    end
 endmodule
+
 
 
 module hex_decoder(c, display);
