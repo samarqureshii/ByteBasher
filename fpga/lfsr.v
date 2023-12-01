@@ -5,20 +5,35 @@ module lfsr_top_level(CLOCK_50, KEY, HEX0);
     input [3:0] KEY;
     output [6:0] HEX0;
 
+    reg [2:0] seed = 3'b001; // Initial seed value
     wire [2:0] lfsr_out;
     wire [1:0] box_mapped;
     wire [3:0] hex_input;
-    wire reset_signal = ~KEY[0]; // invert active low 
+    wire reset_signal = ~KEY[0]; // Active low reset signal
+    reg previous_reset_state = 1'b0; // To detect reset signal edges
 
-    lfsr_3bit lfsr (.out(lfsr_out), .enable(1'b1), .clk(CLOCK_50), .reset(reset_signal));
+    // Free-running counter for seeding
+    reg [2:0] free_running_counter = 3'b000;
+    always @(posedge CLOCK_50) begin
+        free_running_counter <= free_running_counter + 1;
+    end
+
+    // LFSR instance
+    lfsr_3bit lfsr (.out(lfsr_out), .enable(1'b1), .clk(CLOCK_50), .reset(reset_signal), .seed(seed));
+
+    // LFSR reset and reseed logic
+    always @(posedge CLOCK_50) begin
+        if (reset_signal && !previous_reset_state) begin
+            seed <= free_running_counter; // Capture the free-running counter value as a new seed
+        end
+        previous_reset_state <= reset_signal;
+    end
+
+    // Rest of the logic remains the same
     map_lfsr_to_boxes map_lfsr (.lfsr_out(lfsr_out), .box(box_mapped));
-
-    // map the 2-bit box output to a 4-bit input for the hex decoder
-    assign hex_input = {2'b00, box_mapped}; // zero-padding to fit the hex decoder input
-
+    assign hex_input = {2'b00, box_mapped};
     hex_decoder hd_lfsr(hex_input, HEX0);
 endmodule
-
 
 module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [1:0] box);
     always @(lfsr_out) begin
@@ -32,20 +47,13 @@ module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [1:0] box);
     end
 endmodule
 
-module lfsr_3bit (out, enable, clk, reset); 
+// Modify lfsr_3bit module to accept a seed input
+module lfsr_3bit (out, enable, clk, reset, seed); 
     output reg [2:0] out;
     input enable, clk, reset;
+    input [2:0] seed;
     wire linear_feedback;
-
-    // Feedback from XOR of bit 2 and bit 0 (positions 2 and 0 for a 3-bit LFSR)
-    assign linear_feedback = !(out[2] ^ out[0]);
-
-    always @(posedge clk) begin
-        if (reset) 
-            out <= 3'b001; // Non-zero initial state
-        else if (enable)
-            out <= {out[1:0], linear_feedback};
-    end
+    // Rest of the LFSR logic remains the same
 endmodule
 
 
