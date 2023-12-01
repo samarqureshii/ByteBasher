@@ -47,6 +47,12 @@ reg [13:0] addr_count;
 reg [10:0] clock_count;
 reg snd;
 
+
+reg [22:0] beatCountMario;
+reg [9:0] addressMario; 
+													
+sound r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
+
 always @(posedge CLOCK_50)
 	if(delay_cnt == delay) begin
 		delay_cnt <= 0;
@@ -54,7 +60,7 @@ always @(posedge CLOCK_50)
 	end else delay_cnt <= delay_cnt + 1;
 
 always @(posedge CLOCK_50) begin
-	if(beatCountMario == 23'd5000000)begin
+	if(beatCountMario == 23'b10011000100101101000000)begin
 		beatCountMario <= 23'b0;
 		if(addressMario < 10'd999)
 			addressMario <= addressMario + 1;
@@ -67,19 +73,12 @@ always @(posedge CLOCK_50) begin
 		beatCountMario <= beatCountMario + 1;
 end
 
-
-// wire [13:0] address_count;
-// assign address_count = addr_count;
-
 wire [31:0] sound = snd ? 32'd100000000 : -32'd100000000;
 
 assign read_audio_in			= audio_in_available & audio_out_allowed;
-assign left_channel_audio_out = {audio_from_ram, 26'b0};
-assign right_channel_audio_out = 32'b0;
+assign left_channel_audio_out	= left_channel_audio_in+sound;
+assign right_channel_audio_out	= left_channel_audio_in+sound;
 assign write_audio_out			= audio_in_available & audio_out_allowed;
-
- //my 32 bit RAM module for the gameover MIF sound
-gameover ram(.address(address_count), .clock(CLOCK_50), .q(audio_from_ram));
 
 Audio_Controller Audio_Controller (
 	.CLOCK_50					(CLOCK_50),
