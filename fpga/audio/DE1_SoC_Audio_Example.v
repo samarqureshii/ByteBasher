@@ -73,7 +73,7 @@ assign right_channel_audio_out = 32'b0;
 assign write_audio_out			= audio_in_available & audio_out_allowed;
 
  //my 32 bit RAM module for the gameover MIF sound
-gameover ram(.address(address_count), .clock(CLOCK_50), .q(audio_from_ram), .wren(1'b0));
+gameover ram(.address(address_count), .clock(CLOCK_50), .q(audio_from_ram));
 
 Audio_Controller Audio_Controller (
 	.CLOCK_50					(CLOCK_50),
