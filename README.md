@@ -1,5 +1,6 @@
 # ByteBasher
 Our digital take on the classic "Whac-A-Mole" game that uses hand proximity detected by a series of ultrasonic distance sensors on an MCU to register hits on a VGA screen, with a De1-SoC FPGA board manading the increasing game difficulty and score updates.
+## Miscellaneous Notes
 
 ## ~~Scuffed~~ Timeline
 ~~No way we pull this off~~
