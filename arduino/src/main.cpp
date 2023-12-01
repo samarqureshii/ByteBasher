@@ -125,7 +125,7 @@ void loop() {
     digitalWrite(led4, LOW);
   }
 
-  delay(1500);
+  delay(2);
 }
 
 // put function definitions here:

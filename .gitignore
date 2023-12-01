@@ -21,6 +21,8 @@
 # Backup files
 *.bak
 
+*.wav
+
 # ModelSim working files
 **/work/
 **/simulation/
