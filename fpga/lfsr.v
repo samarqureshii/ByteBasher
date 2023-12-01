@@ -18,15 +18,25 @@ module lfsr_top_level(CLOCK_50, KEY, HEX0);
         free_running_counter <= free_running_counter + 1;
     end
 
-    // LFSR instance
-    lfsr_3bit lfsr (.out(lfsr_out), .enable(1'b1), .clk(CLOCK_50), .reset(reset_signal), .seed(seed));
+    lfsr_3bit lfsr (
+        .out(lfsr_out),
+        .enable(1'b1),
+        .clk(CLOCK_50),
+        .reset(reset_signal),
+        .seed(seed)
+    );
 
     // LFSR reset and reseed logic
-    always @(posedge CLOCK_50) begin
-        if (reset_signal && !previous_reset_state) begin
-            seed <= free_running_counter; // Capture the free-running counter value as a new seed
+    always @(posedge CLOCK_50 or posedge reset_signal) begin
+        if (reset_signal) begin
+            // Capture the free-running counter value as a new seed on reset
+            if (!previous_reset_state) begin
+                seed <= free_running_counter;
+            end
+            previous_reset_state <= 1'b1;
+        end else begin
+            previous_reset_state <= 1'b0;
         end
-        previous_reset_state <= reset_signal;
     end
 
     // Rest of the logic remains the same
@@ -48,13 +58,24 @@ module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [1:0] box);
 endmodule
 
 // Modify lfsr_3bit module to accept a seed input
-module lfsr_3bit (out, enable, clk, reset, seed); 
+module lfsr_3bit (out, enable, clk, reset, seed);
     output reg [2:0] out;
     input enable, clk, reset;
     input [2:0] seed;
     wire linear_feedback;
-    // Rest of the LFSR logic remains the same
+
+    // Feedback from XOR of bit 2 and bit 0 (positions 2 and 0 for a 3-bit LFSR)
+    assign linear_feedback = !(out[2] ^ out[0]);
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            out <= seed; // Initialize with seed at reset
+        end else if (enable) begin
+            out <= {out[1:0], linear_feedback};
+        end
+    end
 endmodule
+
 
 
 module hex_decoder(c, display);
