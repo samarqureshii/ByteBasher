@@ -47,25 +47,31 @@ reg [13:0] addr_count;
 reg [10:0] clock_count;
 reg snd;
 
-always @(posedge CLOCK_50)begin
-	
-	if (clock_count == 11'd1200) begin
-		if (addr_count == 14'd16383) begin 
-			addr_count <= 14'b0;
-			end
-		else addr_count <= addr_count + 1'b1;
-		clock_count <= 0;
-	end
-	else clock_count <= clock_count + 1;
-	
-	if(~KEY[0]) begin
-		addr_count<= 14'b0;
-		clock_count <= 11'b0;
-	end
-end
-wire [13:0] address_count;
-assign address_count = addr_count;
+always @(posedge CLOCK_50)
+	if(delay_cnt == delay) begin
+		delay_cnt <= 0;
+		snd <= !snd;
+	end else delay_cnt <= delay_cnt + 1;
 
+always @(posedge CLOCK_50) begin
+	if(beatCountMario == 23'd5000000)begin
+		beatCountMario <= 23'b0;
+		if(addressMario < 10'd999)
+			addressMario <= addressMario + 1;
+		else begin
+			addressMario <= 0;
+			beatCountMario <= 0;
+		end
+	end
+	else 
+		beatCountMario <= beatCountMario + 1;
+end
+
+
+// wire [13:0] address_count;
+// assign address_count = addr_count;
+
+wire [31:0] sound = snd ? 32'd100000000 : -32'd100000000;
 
 assign read_audio_in			= audio_in_available & audio_out_allowed;
 assign left_channel_audio_out = {audio_from_ram, 26'b0};
