@@ -20,7 +20,7 @@ Our digital take on the classic "Whac-A-Mole" game that uses hand proximity dete
 ### Nov 30 
 - ~~Test LFSR (Samar)~~
 - ~~VGA `.mif` switching (Annie)~~
-- Get audio working (Samar)
+- ~~Get audio working (Samar)~~
 ### Nov 1
 - Drawing mole on top of `.mif` file (Annie)
 - Clean `.mif` switching (Annie)
