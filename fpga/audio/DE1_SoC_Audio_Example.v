@@ -60,7 +60,7 @@ always @(posedge CLOCK_50)
 	end else delay_cnt <= delay_cnt + 1;
 
 always @(posedge CLOCK_50) begin
-	if(beatCountMario == 23'b10011000100101101000000)begin
+	if(beatCountMario == 23'd2500000)begin
 		beatCountMario <= 23'b0;
 		if(addressMario < 10'd999)
 			addressMario <= addressMario + 1;
