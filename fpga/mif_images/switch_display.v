@@ -1,253 +1,315 @@
+// Part 2 skeleton
 
-
-module switch_display(
-            /*************INPUTS************/
-            reset, //active low synchronous reset 
-            iPlotBox, //When pulsed (goes high then low), it triggers the circuit to start drawing the square with the specified colour at the specified coordinates 
-            q, //colour that the square will be (001, 010, or 100 for RGB)
-            //when high, the value present on iXY_Coord is loaded into the x coordinate register, 
-            //if it stays high, the value on iXY_Coord will continue to be laoded into the X register with every clock cycle
-            address, //Specify the X and Y coordinates where the 4 by 4 pixel square will be drawn on the display
-            clock, //clock input
-
-            /*************OUTPUTS************/
-            x_counter, //outputs carry the current x and y pixel coordinates to the VGA adapter, indicating where to draw on the screen
-            y_counter,
-            colour, //output provides the colour value for the current pixel to be drawn and is sent to the VGA adapter 
-            oPlot, //control signal that acts as a write enable. when High, the VGA adapter will draw the pixel at the coordinate (oX, oY)
-            oDone); //output signal that indicates that the circuit has completed the task 
-               //set high after the circuit has finished drawing a box or clearing the screen. remains high until iPlotBox or iBlack is pulsed again 
-   parameter X_SCREEN_PIXELS = 8'd160;
-   parameter Y_SCREEN_PIXELS = 7'd120;
-
-   input wire reset, iPlotBox;
-   input wire [2:0] q;
-   input wire [14:0] address;
-   input wire 	    clock;
-   output wire [7:0] x_counter;         // VGA pixel coordinates
-   output wire [6:0] y_counter;
-
-   output wire [2:0] colour;     // VGA pixel colour (0-7)
-   output wire 	     oPlot;       // Pixel draw enable
-   output wire       oDone;       // goes high when finished drawing frame
-
-   //instantiate Control and Datapath modules 
-   wire loadD, plot;
-   wire [14:0] counter;
-
-   
-   Control C1 (
-   .clock(clock),
-   .reset(reset),
-   .iPlotBox(iPlotBox),
-   .counter(counter),   
-   .loadD(loadD),
-   .done(oDone),
-   .plot(plot));
-
-// Instantiate Datapath module
-Datapath D1 (
-   .clock(clock),
-   .reset(reset),
-   .ControlD(loadD),
-   .x_counter(x_counter),
-   .y_counter(y_counter),
-   .colour(colour),
-   .counter(counter));
-
-endmodule // part2
-
-
-//FSM to control which state we need to be in and assert the control signal to datapath 
-module Control(
-   input clock,
-   input reset,
-   input iPlotBox,
-   input [14:0] counter, //15 bit counter
-
-   //outputs to datapath and VGA
-   output reg loadD, //start drawing
-   output reg done, //must be high until we pulse iPlotBox or iBlack
-   output reg plot //output to VGA
-   );
-
-   parameter X_SCREEN_PIXELS = 8'd160;
-   parameter Y_SCREEN_PIXELS = 7'd120;
-
-   // internal registers for current and next states. must be 3 bits wide because we have 7 different states in the FSM
-   reg [2:0] current;
-   reg [2:0] next;
-
-   //state parameters. need to also account for waiting time in between each state.
-   localparam 
-               S_DRAW = 3'd0,
-               S_DRAW_WAIT = 3'd1,
-               S_CLEAR = 3'd2;
-
-   always @ (posedge clock) begin
-   if (!reset) begin // active low reset
-      current <= S_DRAW; // back to start
-      loadD <= 0;
-      done <= 0;
-      plot <= 0;
-   end 
-
-   else begin
-      current <= next; 
-   end
-   end
-
-   always @ (*) begin // State table 
-      // reset all control signals at the beginning of each state transition so they dont stay high
-
-      loadD = 0;
-      plot = 0;
-      
-      case (current)
-         S_DRAW: begin // if counter hits 1111, then we know we are done drawing the box
-            loadD = 1; // assert loadD to start drawing
-            plot = 1; // assert plot to enable drawing on VGA
-            next = (counter == 19200) ? S_DRAW_WAIT : current;
-         end
-
-         S_DRAW_WAIT: begin // either after we have drawn or cleared the screen, we have to wait for the x to be loaded again
-            done = 1; // assert done to indicate completion
-            (next == S_DRAW_WAIT) // Assert done after clearing is complete
-         end
-
-         default: begin
-            next = S_DRAW;
-         end
-      endcase 
-   end
-endmodule
-
-
-
-// Datapath module to handle drawing and clearing operations
-module Datapath(
-    input clock,
-    input reset,
-    input [14:0] address, // initial X and Y coord
-    input ControlD, // control when to draw and output the x/y registers
-    output reg [7:0] x_counter, //x coord
-    output reg [6:0] y_counter, //y coord
-    output reg [2:0] colour, //colour
-    output reg [14:0] counter //internal counter
+module fill
+(
+CLOCK_50, // On Board 50 MHz
+// Your inputs and outputs here
+SW,
+KEY,// On Board Keys
+// The ports below are for the VGA output.  Do not change.
+VGA_CLK,   // VGA Clock
+VGA_HS, // VGA H_SYNC
+VGA_VS, // VGA V_SYNC
+VGA_BLANK_N, // VGA BLANK
+VGA_SYNC_N, // VGA SYNC
+VGA_R,   // VGA Red[9:0]
+VGA_G, // VGA Green[9:0]
+VGA_B   // VGA Blue[9:0]
 );
 
+input CLOCK_50; // 50 MHz
+input [9:0] SW;
+input [1:0] KEY;
+// Declare your inputs and outputs here
+// Do not change the following outputs
+output VGA_CLK;   // VGA Clock
+output VGA_HS; // VGA H_SYNC
+output VGA_VS; // VGA V_SYNC
+output VGA_BLANK_N; // VGA BLANK
+output VGA_SYNC_N; // VGA SYNC
+output [7:0] VGA_R;   // VGA Red[7:0] Changed from 10 to 8-bit DAC
+output [7:0] VGA_G; // VGA Green[7:0]
+output [7:0] VGA_B;   // VGA Blue[7:0]
 
-    reg [2:0] colour; // 001, 010, 100
+wire resetn;
+assign resetn = KEY[0];
 
-    parameter X_SCREEN_PIXELS = 8'd160;
-    parameter Y_SCREEN_PIXELS = 7'd120;
+// Create the colour, x, y and writeEn wires that are inputs to the controller.
 
-    always @(posedge Clock) begin
-        if (!reset) begin
-            // Reset logic
-            colour <= 3'b0;
-            counter <= 14'b0;
-            x_counter <= 8'b0;
-            y_counter <= 7'b0;
-        end 
-       
-		if (ControlD) begin
-			if (address < 19200) begin 
-            	address <= address + 1; 
-            	x <= x_counter;
-            	y <= y_counter;
+wire [2:0] colour;
+wire [7:0] x;
+wire [6:0] y;
+assign writeEn = 1;
 
-            	if(x_counter == 160 && y_counter == 120) begin
-                	x_counter <= 0;
-                	y_counter <= 0;
-            	end
-				else
-           		begin
-                if(x_counter < 160) begin
-                	x_counter <= x_counter + 1;
-                end
-            else begin
-                x_counter <= 0;
-                y_counter <= y_counter + 1;
-            end
-            end           
-        	end
-            end 
- 
-            else begin
-                counter <= 0;
-            end
-			
-			if(current_level == 2'b01)
-        	begin
-			colour <= static;
-        	end
+// Create an Instance of a VGA controller - there can be only one!
+// Define the number of colours as well as the initial background
+// image file (.MIF) for the controller.
+vga_adapter VGA(
+.resetn(resetn),
+.clock(CLOCK_50),
+.colour(colour),
+.x(x),
+.y(y),
+.plot(writeEn),
+/* Signals for the DAC to drive the monitor. */
+.VGA_R(VGA_R),
+.VGA_G(VGA_G),
+.VGA_B(VGA_B),
+.VGA_HS(VGA_HS),
+.VGA_VS(VGA_VS),
+.VGA_BLANK(VGA_BLANK_N),
+.VGA_SYNC(VGA_SYNC_N),
+.VGA_CLK(VGA_CLK));
+defparam VGA.RESOLUTION = "160x120";
+defparam VGA.MONOCHROME = "FALSE";
+defparam VGA.BITS_PER_COLOUR_CHANNEL = 1;
+defparam VGA.BACKGROUND_IMAGE = "start_yay.mif";
 
-        end
-
+// Put your code here. Your code should produce signals x,y,colour and writeEn
+// for the VGA controller, in addition to any other functionality your design may require.
+display_maze maze(
+.current_level(SW[1:0]),
+.clock(CLOCK_50),
+.reset(!resetn),
+.colour(colour),
+.x(x),
+.y(y),
+.cur_x(9'd60),
+.cur_y(8'd45));
 
 endmodule
 
-`timescale 1 ps / 1 ps
-// synopsys translate_on
-module static (
-	address,
-	clock,
-	q);
+module display_maze(current_level, clock, reset, colour, x, y, cur_x, cur_y);
 
-	input	[14:0]  address;
-	input	  clock;
-	output	[2:0]  q;
+    input clock;
+input reset;
+    reg [14:0] address;
+input [8:0] cur_x;
+input [7:0] cur_y;
+
+    output reg [2:0] colour;
+    output reg [8:0] x;
+    output reg [7:0] y;
+
+    reg [8:0] x_counter;
+    reg [7:0] y_counter;
+
+
+    wire [2:0] colour1;
+
+    input [1:0] current_level; // write enable
+reg       oDone;       // goes high when finished drawing frame
+                                // must remain gigh until iPlotBox or iBlack pulsed high and then low
+    reg counter_en;
+    reg plot_enable;
+
+
+    // 00: no plots --> shows background mif level 1
+    // 01: shows level 2
+
+
+
+mif_test M0(
+        .clock(clock),
+        .address(address),
+        .q(colour1)
+    );
+
+   // datapath
+    always@(posedge clock)
+    begin
+        if (reset == 1)
+        begin
+           
+            colour <= 0;
+            x <= 0;
+            y <= 0;
+        end
+        else if(plot_enable == 1) // set x, y, color values
+        begin
+            if((x_counter >= cur_x) && (x_counter <= (cur_x +4)) && (y_counter >= cur_y) && (y_counter <= (cur_y + 4)))
+            begin
+                x <= x_counter;
+                y <= y_counter;
+                colour <= 3'b010; // color red within these bounds
+
+
+                //plot_char <= 0;
+            end
+            else
+            begin
+
+            x <= x_counter;
+            y <= y_counter;
+            if(current_level == 2'b01)
+                begin
+       colour <= colour1;
+                end
+            end
+        end
+    end
+
+    always@(posedge clock)
+    begin
+        if(reset == 1)
+        begin
+            x_counter <= 0;
+            y_counter <= 0;
+            address <= 0;
+        end
+        else
+        begin
+            if(counter_en)
+            begin
+                // counter full
+                if(address == 15'd19199)
+                begin
+                    address <= 0;
+                    x_counter <= 0;
+                    y_counter <= 0;
+                end
+                else
+                begin
+                    address <= address + 1;
+                    if(x_counter == 9'd159)
+                    begin
+                        x_counter <= 0;
+                        y_counter <= y_counter + 1;
+                    end
+                 
+
+                    else // x needs to be incremented
+                    begin
+                        x_counter <= x_counter + 1;
+                    end
+                end
+            end
+        end
+    end
+
+    // controlpath
+    reg [2:0] curr_state, next_state;
+    localparam START = 3'd0, WAIT_DRAW = 3'd1, DRAW = 3'd2, DONE = 3'd3;
+    always@(*)
+    begin
+        case(curr_state)
+       
+            START: begin
+                if(plot_enable)
+                    next_state = WAIT_DRAW;
+                else
+                    next_state = START;
+            end
+
+            WAIT_DRAW: next_state = DRAW;
+
+            DRAW: next_state = (address == 15'd19199) ? DONE: DRAW;
+
+            DONE:
+            begin
+               
+                next_state = START;
+               
+            end
+            default: next_state = START;
+       
+        endcase
+    end
+
+    always@(*)
+    begin
+        //plot_char = 1'b0;
+
+
+        counter_en = 1'b0;
+        plot_enable = 1'b1;
+        oDone = 1'b0;
+   
+
+    case(curr_state)
+START:
+begin
+if(current_level == 2'b00)  plot_enable = 1'b0;
+ oDone = 1'b0;
+end
+    DRAW:
+    begin
+        counter_en = 1'b1;
+        plot_enable = 1'b1;
+    end
+    DONE: oDone = 1'b1;
+    endcase
+    end
+
+    always@(posedge clock)
+    begin
+        if(reset)
+        curr_state <= START;
+        else
+        curr_state <= next_state;
+    end
+endmodule
+
+
+
+module mif_test (    
+address,
+clock,
+q);
+
+input [14:0]  address;
+input  clock;
+output [2:0]  q;
 `ifndef ALTERA_RESERVED_QIS
 // synopsys translate_off
 `endif
-	tri1	  clock;
+tri1  clock;
 `ifndef ALTERA_RESERVED_QIS
 // synopsys translate_on
 `endif
 
-	wire [2:0] sub_wire0;
-	wire [2:0] q = sub_wire0[2:0];
+wire [2:0] sub_wire0;
+wire [2:0] q = sub_wire0[2:0];
 
-	altsyncram	altsyncram_component (
-				.address_a (address),
-				.clock0 (clock),
-				.q_a (sub_wire0),
-				.aclr0 (1'b0),
-				.aclr1 (1'b0),
-				.address_b (1'b1),
-				.addressstall_a (1'b0),
-				.addressstall_b (1'b0),
-				.byteena_a (1'b1),
-				.byteena_b (1'b1),
-				.clock1 (1'b1),
-				.clocken0 (1'b1),
-				.clocken1 (1'b1),
-				.clocken2 (1'b1),
-				.clocken3 (1'b1),
-				.data_a ({3{1'b1}}),
-				.data_b (1'b1),
-				.eccstatus (),
-				.q_b (),
-				.rden_a (1'b1),
-				.rden_b (1'b1),
-				.wren_a (1'b0),
-				.wren_b (1'b0));
-	defparam
-		altsyncram_component.address_aclr_a = "NONE",
-		altsyncram_component.clock_enable_input_a = "BYPASS",
-		altsyncram_component.clock_enable_output_a = "BYPASS",
-		altsyncram_component.init_file = "./bmp2mif/bmp2mif/static.mif",
-		altsyncram_component.intended_device_family = "Cyclone V",
-		altsyncram_component.lpm_hint = "ENABLE_RUNTIME_MOD=NO",
-		altsyncram_component.lpm_type = "altsyncram",
-		altsyncram_component.numwords_a = 19200,
-		altsyncram_component.operation_mode = "ROM",
-		altsyncram_component.outdata_aclr_a = "NONE",
-		altsyncram_component.outdata_reg_a = "UNREGISTERED",
-		altsyncram_component.widthad_a = 15,
-		altsyncram_component.width_a = 3,
-		altsyncram_component.width_byteena_a = 1;
+altsyncram altsyncram_component (
+.address_a (address),
+.clock0 (clock),
+.q_a (sub_wire0),
+.aclr0 (1'b0),
+.aclr1 (1'b0),
+.address_b (1'b1),
+.addressstall_a (1'b0),
+.addressstall_b (1'b0),
+.byteena_a (1'b1),
+.byteena_b (1'b1),
+.clock1 (1'b1),
+.clocken0 (1'b1),
+.clocken1 (1'b1),
+.clocken2 (1'b1),
+.clocken3 (1'b1),
+.data_a ({3{1'b1}}),
+.data_b (1'b1),
+.eccstatus (),
+.q_b (),
+.rden_a (1'b1),
+.rden_b (1'b1),
+.wren_a (1'b0),
+.wren_b (1'b0));
+defparam
+altsyncram_component.address_aclr_a = "NONE",
+altsyncram_component.clock_enable_input_a = "BYPASS",
+altsyncram_component.clock_enable_output_a = "BYPASS",
+altsyncram_component.init_file = "static.mif",
+altsyncram_component.intended_device_family = "Cyclone V",
+altsyncram_component.lpm_hint = "ENABLE_RUNTIME_MOD=NO",
+altsyncram_component.lpm_type = "altsyncram",
+altsyncram_component.numwords_a = 19200,
+altsyncram_component.operation_mode = "ROM",
+altsyncram_component.outdata_aclr_a = "NONE",
+altsyncram_component.outdata_reg_a = "UNREGISTERED",
+altsyncram_component.widthad_a = 15,
+altsyncram_component.width_a = 3,
+altsyncram_component.width_byteena_a = 1;
 
 
 endmodule
