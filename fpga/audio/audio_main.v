@@ -42,54 +42,33 @@ localparam winstart = 18'd0,
 			  cheerstart = 18'd83255,
 			  cheerend = 18'd137138;
 			  
-always @(posedge CLOCK_50)begin
-	if (play_sound) begin
+always @(posedge CLOCK_50) begin
+    if (~play_sound) begin
+        // Reset address count when play_sound is inactive
+        addr_count <= 18'b0;
+        clock_count <= 11'b0;
+    end else begin
+        // Set sound range based on play_sound
         soundstart <= winstart;
         soundend <= winend;
-    end else begin
-        soundstart <= moostart;
-        soundend <= mooend;
+
+        // Existing logic to cycle through audio addresses
+        if (clock_count == 11'd1200) begin
+            if (addr_count == soundend) begin 
+                addr_count <= soundstart;
+            end else if ((addr_count >= soundstart) && (addr_count < soundend)) begin
+                addr_count <= addr_count + 1'b1;
+                clock_count <= 0;
+            end else addr_count <= soundstart;
+        end else clock_count <= clock_count + 1;
     end
-// case (sound_select)
-// 		2'b00: begin
-// 			soundstart <= winstart;
-// 			soundend <= winend;
-// 		end 
-// 		2'b01: begin
-// 			soundstart <= moostart;
-// 			soundend <= mooend;
-// 		end
-// 		2'b10: begin
-// 			soundstart <= detectstart;
-// 			soundend <= detectend;
-// 		end
-// 		2'b11: begin
-// 			soundstart <= cheerstart;
-// 			soundend <= cheerend;
-// 		end
-// 		default: begin
-// 			soundstart <= winstart;
-// 			soundend <= winend;
-// 		end
-// 	endcase
-	
-		if (clock_count == 11'd1200) begin
-			if (addr_count == soundend) begin 
-				addr_count <= soundstart;
-			end
-			else if ((addr_count >= soundstart) && (addr_count < soundend)) begin
-				addr_count <= addr_count + 1'b1;
-				clock_count <= 0;
-			end
-			else addr_count <= soundstart;
-		end
-		else clock_count <= clock_count + 1;
-		
-		if(~KEY[0]) begin
-			addr_count<= 18'b0;
-			clock_count <= 11'b0;
-		end
-	end
+
+    if(~KEY[0]) begin
+        addr_count <= 18'b0;
+        clock_count <= 11'b0;
+    end
+end
+
 
 assign address_count = addr_count;
 

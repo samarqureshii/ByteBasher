@@ -28,7 +28,7 @@ module Datapath(
 
 wire [1:0] box_address_wire;  // Internal wire to connect to read_sensor
 assign box_address = box_address_wire;
-reg play_sound; //control signal to assert when we should start playing the sound 
+//reg play_sound; //control signal to assert when we should start playing the sound 
 // Internal registers
 reg [1:0] current_box;
 reg [3:0] counter; // 4-bit counter for game timer
@@ -51,6 +51,7 @@ read_sensor sensor(
     .LEDR(LEDR),
     .box_address(box_address_wire)
 );
+
 
 audio_main audio_unit (
     .CLOCK_50(CLOCK_50), 
@@ -95,7 +96,7 @@ always @(posedge CLOCK_50 or posedge reset) begin
             difficulty_level <= 3;
 
         // Check if sensor input matches the LFSR box
-        if (lfsr_address == sensor_input) begin
+        if (lfsr_random_value == box_address) begin
             hit_led <= 1; // Turn on LED 
             //LEDR_reg[9] <= 1'b1;
             play_sound = 1'b1;
