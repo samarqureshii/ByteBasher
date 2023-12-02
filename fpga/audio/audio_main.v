@@ -1,26 +1,11 @@
 module audio_main (
-	CLOCK_50,
-	KEY,
-	AUD_ADCDAT,
-
-	AUD_BCLK,
-	AUD_ADCLRCK,
-	AUD_DACLRCK,
-
-	FPGA_I2C_SDAT,
-
-	AUD_XCK,
-	AUD_DACDAT,
-
-	FPGA_I2C_SCLK,
-	SW,
+	 CLOCK_50, KEY, AUD_ADCDAT, AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
+	AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK, audio_en, sound_select
 );
 
-input				CLOCK_50;
+input				CLOCK_50, audio_en;
 input		[3:0]	KEY;
-input		[3:0]	SW;
-reg [1:0] sound_sel;
-
+input [1:0] sound_select;
 input				AUD_ADCDAT;
 
 inout				AUD_BCLK;
@@ -43,81 +28,70 @@ wire		[31:0]	right_channel_audio_out;
 wire				write_audio_out;
 wire [17:0] address_count;
 
-reg [18:0] delay_cnt;
-wire [18:0] delay;
-reg [13:0] addr_count, soundstart, soundend;;
+
+reg [17:0] addr_count, soundstart, soundend;
 reg [10:0] clock_count;
-reg snd;
-
-
-reg [22:0] beatCountMario;
-reg [9:0] addressMario; 
-													
-sound_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
-win_rom w1(.address(addressMario), .clock(CLOCK_50), .q(delay));
-
-always @(*) begin
-    if (~SW[0]) begin
-        sound_sel <= 2'b00; // Mario sound
-    end else if (~SW[1]) begin
-        sound_sel <= 2'b01; // Win sound
-    end else begin
-        sound_sel <= 2'b10; // Default or other sound
-    end
-end
-
-always @(posedge CLOCK_50)
-	if(delay_cnt == delay) begin
-		delay_cnt <= 0;
-		snd <= !snd;
-	end else delay_cnt <= delay_cnt + 1;
-
-
-always @(posedge CLOCK_50) begin
-	case(sound_sel)
-		2'b00: begin //mario sound 
-		if(beatCountMario == 23'd2500000)begin
-			beatCountMario <= 23'b0;
-			if(addressMario < 10'd999)
-				addressMario <= addressMario + 1;
-			else begin
-				addressMario <= 0;
-				beatCountMario <= 0;
-			end
+localparam winstart = 18'd0,
+			  winend = 18'd16395,
+			  moostart = 18'd16396,
+			  mooend = 18'd66982,
+			  detectstart = 18'd66983, 
+			  detectend = 18'd83254,
+			  cheerstart = 18'd83255,
+			  cheerend = 18'd137138;
+			  
+always @(posedge CLOCK_50)begin
+case (sound_select)
+		2'b00: begin
+			soundstart <= winstart;
+			soundend <= winend;
+		end 
+		2'b01: begin
+			soundstart <= moostart;
+			soundend <= mooend;
 		end
-		else 
-			beatCountMario <= beatCountMario + 1;
+		2'b10: begin
+			soundstart <= detectstart;
+			soundend <= detectend;
 		end
-
-		2'b01: begin //win sound 
-			soundstart <= 18'd0; //
-			soundend <= 18'd16395;
-
-			if (clock_count == 11'd1200) begin
-				if (addr_count == soundend) begin 
-					addr_count <= soundstart;
-				end
-				else if ((addr_count >= soundstart) && (addr_count < soundend)) begin
-					addr_count <= addr_count + 1'b1;
-					clock_count <= 0;
-				end
-				else addr_count <= soundstart;
-			end
-		else clock_count <= clock_count + 1;
+		2'b11: begin
+			soundstart <= cheerstart;
+			soundend <= cheerend;
 		end
-
 		default: begin
+			soundstart <= winstart;
+			soundend <= winend;
 		end
 	endcase
-end
+	
+		if (clock_count == 11'd1200) begin
+			if (addr_count == soundend) begin 
+				addr_count <= soundstart;
+			end
+			else if ((addr_count >= soundstart) && (addr_count < soundend)) begin
+				addr_count <= addr_count + 1'b1;
+				clock_count <= 0;
+			end
+			else addr_count <= soundstart;
+		end
+		else clock_count <= clock_count + 1;
+		
+		if(~KEY[0]) begin
+			addr_count<= 18'b0;
+			clock_count <= 11'b0;
+		end
+	end
 
-wire [31:0] sound = snd ? 32'd100000000 : -32'd100000000;
 assign address_count = addr_count;
 
+
 assign read_audio_in			= audio_in_available & audio_out_allowed;
-assign left_channel_audio_out	= left_channel_audio_in+sound;
-assign right_channel_audio_out	= left_channel_audio_in+sound;
+assign left_channel_audio_out = {audio_from_ram, 26'b0};
+assign right_channel_audio_out = 32'b0;
 assign write_audio_out			= audio_in_available & audio_out_allowed;
+
+ 
+win_rom ram(.address(address_count), .clock(CLOCK_50), .q(audio_from_ram));
 
 Audio_Controller Audio_Controller (
 	.CLOCK_50					(CLOCK_50),
@@ -127,7 +101,7 @@ Audio_Controller Audio_Controller (
 	.clear_audio_out_memory		(),
 	.left_channel_audio_out		(left_channel_audio_out),
 	.right_channel_audio_out	(right_channel_audio_out),
-	.write_audio_out			(1'b1),
+	.write_audio_out			(audio_en),
 	.AUD_ADCDAT					(AUD_ADCDAT),
 	.AUD_BCLK					(AUD_BCLK),
 	.AUD_ADCLRCK				(AUD_ADCLRCK),
