@@ -27,8 +27,8 @@ module Datapath(
 // reg [9:3] LEDR_reg;
 // assign LEDR = LEDR_reg;
 
-wire [2:0] box_address_wire;  // Internal wire to connect to read_sensor
-assign box_address = box_address_wire;
+//wire [2:0] box_address_wire;  // Internal wire to connect to read_sensor
+//assign box_address = box_address_wire;
 //reg play_sound; //control signal to assert when we should start playing the sound 
 // Internal registers
 reg [1:0] current_box;
@@ -38,11 +38,12 @@ reg [3:0] counter; // 4-bit counter for game timer
 reg hit_led;
 
 wire [2:0] lfsr_address;
-lfsr_top_level lfsr_top (
+// Instantiate lfsr_top_level
+lfsr_top_level lfsr_instance (
     .CLOCK_50(CLOCK_50),
     .KEY(KEY),
     .HEX0(HEX0),
-    .lfsr_address(lfsr_address)  // Connect the output to lfsr_address wire
+    .lfsr_address(lfsr_address)
 );
 
 assign lfsr_random_value = lfsr_address;
