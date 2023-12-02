@@ -5,7 +5,7 @@ module audio_main (
 
 input				CLOCK_50, audio_en;
 input		[3:0]	KEY;
-input [1:0] sound_select;
+//input [1:0] sound_select;
 input				AUD_ADCDAT;
 
 inout				AUD_BCLK;
@@ -41,28 +41,35 @@ localparam winstart = 18'd0,
 			  cheerend = 18'd137138;
 			  
 always @(posedge CLOCK_50)begin
-case (sound_select)
-		2'b00: begin
-			soundstart <= winstart;
-			soundend <= winend;
-		end 
-		2'b01: begin
-			soundstart <= moostart;
-			soundend <= mooend;
-		end
-		2'b10: begin
-			soundstart <= detectstart;
-			soundend <= detectend;
-		end
-		2'b11: begin
-			soundstart <= cheerstart;
-			soundend <= cheerend;
-		end
-		default: begin
-			soundstart <= winstart;
-			soundend <= winend;
-		end
-	endcase
+	if (!SW[0]) begin
+        soundstart <= winstart;
+        soundend <= winend;
+    end else begin
+        soundstart <= moostart;
+        soundend <= mooend;
+    end
+// case (sound_select)
+// 		2'b00: begin
+// 			soundstart <= winstart;
+// 			soundend <= winend;
+// 		end 
+// 		2'b01: begin
+// 			soundstart <= moostart;
+// 			soundend <= mooend;
+// 		end
+// 		2'b10: begin
+// 			soundstart <= detectstart;
+// 			soundend <= detectend;
+// 		end
+// 		2'b11: begin
+// 			soundstart <= cheerstart;
+// 			soundend <= cheerend;
+// 		end
+// 		default: begin
+// 			soundstart <= winstart;
+// 			soundend <= winend;
+// 		end
+// 	endcase
 	
 		if (clock_count == 11'd1200) begin
 			if (addr_count == soundend) begin 
