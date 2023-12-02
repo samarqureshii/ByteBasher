@@ -1,14 +1,17 @@
 `timescale 1ns / 1ns
 
-module lfsr_top_level(CLOCK_50, KEY, HEX0);
-    input CLOCK_50;
-    input [3:0] KEY;
-    output [6:0] HEX0;
+module lfsr_top_level(
+    input CLOCK_50,
+    input [3:0] KEY,
+    output [6:0] HEX0,
+    output [2:0] lfsr_address  // Add this output port
+);
 
     reg [2:0] seed = 3'b001; // Initial seed value
     wire [2:0] lfsr_out;
     wire [1:0] box_mapped;
     wire [3:0] hex_input;
+    reg [1:0] hit_detected;
     wire reset_signal = ~KEY[0]; // Active low reset signal
     reg previous_reset_state = 1'b0; // To detect reset signal edges
 
@@ -40,22 +43,27 @@ module lfsr_top_level(CLOCK_50, KEY, HEX0);
     end
 
     // Rest of the logic remains the same
-    map_lfsr_to_boxes map_lfsr (.lfsr_out(lfsr_out), .box(box_mapped));
+    map_lfsr_to_boxes map_lfsr (
+        .lfsr_out(lfsr_out), 
+        .box(lfsr_address)  // Connect the mapped box output to lfsr_address
+    );
     assign hex_input = {2'b00, box_mapped};
     hex_decoder hd_lfsr(hex_input, HEX0);
 endmodule
 
-module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [1:0] box);
+module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [2:0] box);
     always @(lfsr_out) begin
         case(lfsr_out)
-            3'b001, 3'b010: box = 2'b00; // Box 1
-            3'b011: box = 2'b01; // Box 2
-            3'b100, 3'b101: box = 2'b10; // Box 3
-            3'b110, 3'b111: box = 2'b11; // Box 4
-            default: box = 2'b00; // Default case, can also be an error state
+            // Using 3 bits for output, the range is 001 to 100 (1 to 4 in decimal)
+            3'b001, 3'b010: box = 3'b001; // Box 1
+            3'b011: box = 3'b010;         // Box 2
+            3'b100, 3'b101: box = 3'b011; // Box 3
+            3'b110, 3'b111: box = 3'b100; // Box 4
+            default: box = 3'b001;         // Default case, can also be an error state
         endcase
     end
 endmodule
+
 
 // Modify lfsr_3bit module to accept a seed input
 module lfsr_3bit (out, enable, clk, reset, seed);
