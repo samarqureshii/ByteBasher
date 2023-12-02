@@ -1,5 +1,4 @@
 module Datapath(
-    input clk,
     input reset,
     input start_game, // Signal to start the game
     input hit_detected, // Signal from FSM when a hit is detected
@@ -8,8 +7,8 @@ module Datapath(
     output reg [10:0] score, // Score output to FSM
     output reg [1:0] box_address, // Address of the current box
     output reg [3:0] game_timer, // Game timer
-    output reg [1:0] difficulty_level // Difficulty level
-    output [2:0] lfsr_random_value
+    output reg [1:0] difficulty_level, // Difficulty level
+    output [2:0] lfsr_random_value,
     input [2:0] GPIO_1,
     input CLOCK_50,
     input [6:0] HEX0,
@@ -18,11 +17,12 @@ module Datapath(
     // Additional outputs for VGA, audio, etc.
 );
 
+reg [9:0] LEDR_reg;
+assign LEDR = LEDR_reg;
+
 // Internal registers
 reg [1:0] current_box;
 reg [3:0] counter; // 4-bit counter for game timer
-wire [2:0] lfsr_out;
-wire [2:0] box_mapped; // Changed to 3 bits
 //reg reset_signal;
 //reg [2:0] seed;
 reg hit_led;
@@ -51,7 +51,7 @@ always @(posedge clk or posedge reset) begin
         game_timer <= 0;
         difficulty_level <= 1;
         hit_led <= 0;
-        LEDR[9] <= 1'b0;
+        LEDR_reg[9] <= 1'b0;
         // Reset other states
     end else if (start_game) begin
         game_timer <= game_timer + 1;
@@ -70,11 +70,11 @@ always @(posedge clk or posedge reset) begin
         // Check if sensor input matches the LFSR box
         if (lfsr_address == sensor_input) begin
             hit_led <= 1; // Turn on LED 
-            LEDR[9] <= 1'b1;
+            LEDR_reg[9] <= 1'b1;
             score <= score + difficulty_level; // Increment score based on difficulty
         end else begin
             hit_led <= 0; // Turn off LED
-            LEDR[9] <= 1'b0;
+            LEDR_reg[9] <= 1'b0;
             score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
         end
     end
