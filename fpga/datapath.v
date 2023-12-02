@@ -13,16 +13,22 @@ module Datapath(
     input CLOCK_50,
     input [6:0] HEX0,
     input [3:0] KEY,
-    output[9:0] LEDR
+
+    input AUD_ADCDAT, 
+    inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
+    output AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK,
+    input audio_en  // enable signal for audio
+
+    output reg play_sound //if high, then that means hit detected and 
     // Additional outputs for VGA, audio, etc.
 );
 
-reg [9:0] LEDR_reg;
-assign LEDR = LEDR_reg;
+// reg [9:3] LEDR_reg;
+// assign LEDR = LEDR_reg;
 
 wire [1:0] box_address_wire;  // Internal wire to connect to read_sensor
 assign box_address = box_address_wire;
-
+reg play_sound; //control signal to assert when we should start playing the sound 
 // Internal registers
 reg [1:0] current_box;
 reg [3:0] counter; // 4-bit counter for game timer
@@ -46,6 +52,22 @@ read_sensor sensor(
     .box_address(box_address_wire)
 );
 
+audio_main audio_unit (
+    .CLOCK_50(CLOCK_50), 
+    .KEY(KEY), 
+    .AUD_ADCDAT(AUD_ADCDAT), 
+    .AUD_BCLK(AUD_BCLK), 
+    .AUD_ADCLRCK(AUD_ADCLRCK), 
+    .AUD_DACLRCK(AUD_DACLRCK), 
+    .FPGA_I2C_SDAT(FPGA_I2C_SDAT),
+    .AUD_XCK(AUD_XCK), 
+    .AUD_DACDAT(AUD_DACDAT), 
+    .FPGA_I2C_SCLK(FPGA_I2C_SCLK), 
+    .audio_en(audio_en), 
+    .play_sound(play_sound),
+    .SW(4'b0) // Assuming SW is not used in Datapath, set to a default value
+);
+
 
 // Game logic
 always @(posedge CLOCK_50 or posedge reset) begin
@@ -55,7 +77,8 @@ always @(posedge CLOCK_50 or posedge reset) begin
         game_timer <= 0;
         difficulty_level <= 1;
         hit_led <= 0;
-        LEDR_reg[9] <= 1'b0;
+        play_sound = 1'b0;
+        //LEDR_reg[9] <= 1'b0;
         // Reset other states
     end else if (start_game) begin
         game_timer <= game_timer + 1;
@@ -74,11 +97,13 @@ always @(posedge CLOCK_50 or posedge reset) begin
         // Check if sensor input matches the LFSR box
         if (lfsr_address == sensor_input) begin
             hit_led <= 1; // Turn on LED 
-            LEDR_reg[9] <= 1'b1;
+            //LEDR_reg[9] <= 1'b1;
+            play_sound = 1'b1;
             score <= score + difficulty_level; // Increment score based on difficulty
         end else begin
             hit_led <= 0; // Turn off LED
-            LEDR_reg[9] <= 1'b0;
+            //LEDR_reg[9] <= 1'b0;
+            play_sound = 1'b0;
             score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
         end
     end

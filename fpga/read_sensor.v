@@ -2,7 +2,7 @@
 
 module read_sensor(GPIO_1, LEDR, box_address);
     input [2:0] GPIO_1;  // Declare GPIO_1 as a 3-bit input
-    output [9:0] LEDR;  
+    output [2:0] LEDR;  
     output[2:0] box_address;
 
     // first three LEDs to the GPIO inputs so we know the binary value
@@ -12,6 +12,4 @@ module read_sensor(GPIO_1, LEDR, box_address);
 
     assign box_address = GPIO_1;
 
-    // remaining LEDs are turned off
-    assign LEDR[9:3] = 7'b0;
 endmodule
