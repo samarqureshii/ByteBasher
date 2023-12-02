@@ -1,10 +1,10 @@
 //two 7 segment bit counters to display to the user the time left on the game
-module counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX0, output [6:0] HEX1); //this is just to test the counter on its own 
+module counter (input CLOCK_50, input [9:0] SW, output [6:0] HEX4, output [6:0] HEX5); //this is just to test the counter on its own 
     wire [3:0] onesValue, tensValue;
     counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue);
     
-    hex_decoder hd_ones (onesValue, HEX0); //ones place (HEX0)
-    hex_decoder hd_tens (tensValue, HEX1); //tens place (HEX1)
+    hex_decoder hd_ones (onesValue, HEX4); //ones place (HEX4)
+    hex_decoder hd_tens (tensValue, HEX5); //tens place (HEX5)
 endmodule
 
 
