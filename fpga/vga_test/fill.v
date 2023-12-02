@@ -67,12 +67,12 @@ defparam VGA.BACKGROUND_IMAGE = "start_yay.mif";
 // Put your code here. Your code should produce signals x,y,colour and writeEn
 // for the VGA controller, in addition to any other functionality your design may require.
 
-which_hole hole0(
-.clock(clock),
-.reset(!resetn),
-.random_num(SW[7:4]),
-.random_x(random_x),
-.random_y(random_y));
+// which_hole hole0(
+// .clock(clock),
+// .reset(!resetn),
+// .random_num(SW[7:4]),
+// .random_x(random_x),
+// .random_y(random_y));
 
 display_hole display0(
 .current_level(SW[2:0]),
@@ -115,7 +115,7 @@ reg       oDone;       // goes high when finished drawing frame
 
 
 
-mif_test M0(
+mif_test M0( //NEED THIS (RAM FOR THE SECOND MIF)
         .clock(clock),
         .address(address),
         .q(colour1)
@@ -330,102 +330,41 @@ altsyncram_component.width_byteena_a = 1;
 
 endmodule
 
-module one (
-
-address,
-clock,
-q);
-
-input [14:0]  address;
-input  clock;
-output [2:0]  q;
-`ifndef ALTERA_RESERVED_QIS
-// synopsys translate_off
-`endif
-tri1  clock;
-`ifndef ALTERA_RESERVED_QIS
-// synopsys translate_on
-`endif
-
-wire [2:0] sub_wire0;
-wire [2:0] q = sub_wire0[2:0];
-
-altsyncram altsyncram_component (
-.address_a (address),
-.clock0 (clock),
-.q_a (sub_wire0),
-.aclr0 (1'b0),
-.aclr1 (1'b0),
-.address_b (1'b1),
-.addressstall_a (1'b0),
-.addressstall_b (1'b0),
-.byteena_a (1'b1),
-.byteena_b (1'b1),
-.clock1 (1'b1),
-.clocken0 (1'b1),
-.clocken1 (1'b1),
-.clocken2 (1'b1),
-.clocken3 (1'b1),
-.data_a ({3{1'b1}}),
-.data_b (1'b1),
-.eccstatus (),
-.q_b (),
-.rden_a (1'b1),
-.rden_b (1'b1),
-.wren_a (1'b0),
-.wren_b (1'b0));
-defparam
-altsyncram_component.address_aclr_a = "NONE",
-altsyncram_component.clock_enable_input_a = "BYPASS",
-altsyncram_component.clock_enable_output_a = "BYPASS",
-altsyncram_component.init_file = "../one.mif",
-altsyncram_component.intended_device_family = "Cyclone V",
-altsyncram_component.lpm_hint = "ENABLE_RUNTIME_MOD=NO",
-altsyncram_component.lpm_type = "altsyncram",
-altsyncram_component.numwords_a = 19200,
-altsyncram_component.operation_mode = "ROM",
-altsyncram_component.outdata_aclr_a = "NONE",
-altsyncram_component.outdata_reg_a = "UNREGISTERED",
-altsyncram_component.widthad_a = 15,
-altsyncram_component.width_a = 3,
-altsyncram_component.width_byteena_a = 1;
 
 
-endmodule
+// module which_hole(clock, reset, random_num, random_x, random_y); //DO NOT NEED
+// input clock;
+// input reset;
+// input [2:0] random_num;
+// output reg random_x;
+// output reg random_y;
 
-module which_hole(clock, reset, random_num, random_x, random_y);
-input clock;
-input reset;
-input [2:0] random_num;
-output reg random_x;
-output reg random_y;
-
-always @(posedge clock)
-begin
-if(reset)
-begin
-random_x <= 0;
-random_y <= 0;
-end
-else begin
-case(random_num)
-3'b000: begin
-random_x <= 8'd55;
-random_y <= 7'd45;
-end
-3'b001: begin
-random_x <= 8'd130;
-random_y <= 7'd55;
-end
-3'b010: begin
-random_x <= 8'd55;
-random_y <= 7'd90;
-end
-3'b100: begin
-random_x <= 8'd130;
-random_y <= 7'd90;
-end
-endcase
-end
-end
-endmodule
+// always @(posedge clock)
+// begin
+// if(reset)
+// begin
+// random_x <= 0;
+// random_y <= 0;
+// end
+// else begin
+// case(random_num)
+// 3'b000: begin
+// random_x <= 8'd55;
+// random_y <= 7'd45;
+// end
+// 3'b001: begin
+// random_x <= 8'd130;
+// random_y <= 7'd55;
+// end
+// 3'b010: begin
+// random_x <= 8'd55;
+// random_y <= 7'd90;
+// end
+// 3'b100: begin
+// random_x <= 8'd130;
+// random_y <= 7'd90;
+// end
+// endcase
+// end
+// end
+// endmodule

@@ -23,16 +23,15 @@ Our digital take on the classic "Whac-A-Mole" game that uses hand proximity dete
 - ~~Get audio working (Samar)~~
 ### Nov 1
 - Drawing mole on top of `.mif` file (Annie)
-- Clean `.mif` switching (Annie)
+- ~~Clean `.mif` switching (Annie)~~
+### Nov 2 (Saturday)
 - Test counter and cap it at 60 with reset signal (Samar)
 - Finalize Datapath code (Samar/Annie)
 - Finalize Control code (Samar/Annie)
-### Nov 2 (Saturday)
 - Test VGA with Datapath and Control 
 ### Nov 3 (Sunday)
-### Nov 4
-All nighter in lab
 - Film demo video 
+### Nov 4
 
 ### Nov 5
 5pm demo time 

@@ -1,69 +1,58 @@
-module datapath (
-    input go, clock, reset,
-    input [2:0] box_address, // input from ultrasonic sensors ( 3 bit binary value)
-    output audio_en,
-    output reg [8:0] board_out,
-    output reg ld_level_draw_comp,
-    output reg [10:0] score // Score output
+module Datapath(
+    input clk,
+    input reset,
+    input start_game, // Signal to start the game
+    input hit_detected, // Signal from FSM when a hit is detected
+    input [1:0] sensor_input, // Input from read_sensor()
+    input [2:0] lfsr_output, // Output from LFSR module
+    output reg [10:0] score, // Score output to FSM
+    output reg [1:0] box_address, // Address of the current box
+    output reg [3:0] game_timer, // Game timer
+    output reg [1:0] difficulty_level // Difficulty level
+    // Additional outputs for VGA, audio, etc.
 );
 
-    reg [9:0] level_draw_counter;
-    reg [2:0] difficulty; // Track difficulty level
-    reg [9:0] random_number;
-    wire [8:0] ram_out;
-    wire [4:0] address;
-    reg hit; // flag to indicate hit
-    reg [3:0] populated_box; // last populated box
+// Internal registers
+reg [1:0] current_box;
+reg [3:0] counter; // 4-bit counter for game timer
 
-    // randomization for box population
-    lfsr L0 (.out(random_number), .enable(go), .clk(clock), .reset(reset));
+// LFSR Mapping
+map_lfsr_to_boxes lfsr_mapping (.lfsr_out(lfsr_output), .box(current_box));
 
-    // RAM for storing game patterns
-    pattern_ram pr0 (.address(address), .clock(clock), .wren(1'b0), .q(ram_out));
+//instantiate ram for MIF switching 
 
-    // score and difficulty logic
-    always @ (posedge clock) begin
-        if (reset) begin
-            // Reset logic
-            score <= 0;
-            difficulty <= 3'b001; // initial difficulty
-            hit <= 0;
+// Game logic
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        score <= 0;
+        counter <= 0;
+        box_address <= 2'b00;
+        difficulty_level <= 1;
+        // Reset other states
+    end else if (start_game) begin
+        counter <= counter + 1;
+        if (counter >= 60) begin
+            counter <= 0; // Reset counter for next game
         end
-        else begin
-            // update score based on hit and difficulty
-            if (hit) begin
-                if (box_address == populated_box)
-                    score <= score + (1 << difficulty); // Increase score
-                else
-                    score <= score > (1 << difficulty) ? score - (1 << difficulty) : 0; // Decrease score
+
+        // Update difficulty based on counter
+        if (counter < 20) difficulty_level <= 1;
+        else if (counter < 40) difficulty_level <= 2;
+        else difficulty_level <= 3;
+
+        box_address <= current_box; // Update box address from LFSR
+
+        // Update score based on hit detection and difficulty
+        if (hit_detected) begin
+            if (sensor_input == box_address) begin
+                score <= score + difficulty_level; // Increment score based on difficulty
+            end else begin
+                score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
             end
-
-            // difficulty adjustment based on time
-            if (level_draw_counter >= 20_000_000)
-                difficulty <= 3'b010; // level 2
-            else if (level_draw_counter >= 40_000_000)
-                difficulty <= 3'b100; // level 3
-
-            // xox population logic based on LFSR
-            case (random_number[3:0])
-                4'b0001: populated_box <= 3'b001; // Box 1
-                4'b0010: populated_box <= 3'b010; // Box 2
-                4'b1000: populated_box <= 3'b100; // Box 4
-                4'b0100: populated_box <= 3'b101; // Box 5
-                default: populated_box <= 3'b000; // No box
-            endcase
-
-            // update board_out based on RAM content
-            board_out <= ram_out;
         end
     end
+end
 
-    // logic to load patterns into RAM based on game state
-    always @(*) begin
-        case (state)
-            // Different addresses for different game states
-            // Example: address = <appropriate value based on game state>;
-            // ...
-        endcase
-    end
+// Additional logic for VGA, audio, etc.
+
 endmodule

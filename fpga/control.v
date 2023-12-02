@@ -8,29 +8,28 @@ module Control();
                S_RESET = 3'd6;
 
     reg [2:0] current_state, next_state;
+    reg [1:0] difficulty;
+    output reg [10:0] score;
     // more control enable signals here 
 
     always @(*) begin
         case(current_state)
-            S_INIT: begin
-                //initialize stats and everyghing(basically like a natural reset)
-                next_state = S_LOBBY;
-            end
             S_LOBBY: begin
-                // flash welcome screen, game instructions
+                //initialize stats and everything 
                 // transition to S_START_GAME when start HIGH from KEY0
-                if (start) 
+                if (iStart) //if iStart is enabled (controlled by KEY0)
                     next_state = S_START_GAME;
-                else 
+                    difficulty = b'01;
+                else //keep waiting in the lobby
+                //MIF in this state should be the lobby
+                //audio in this state should be the mario sound 
                     next_state = S_LOBBY;
             end
-            S_START_GAME: begin
-                // transition to the screen with the 2 by 2 grid 
-                next_state = S_ACTIVE_GAME;
-            end
+
             S_ACTIVE_GAME: begin
                 //check for game hit, or check 
-                if (hit_detected) 
+                //once the counter hits 20, assert a control signal that 
+                if (box_address!=4b'0000) //if the binary read from the Arduino is not 0
                     next_state = S_HIT_DETECTED;
                 else if (counter == d'60) //once the counter hits 60
                     next_state = S_GAME_OVER;
@@ -38,7 +37,8 @@ module Control();
                     next_state = S_ACTIVE_GAME;
             end
             S_HIT_DETECTED: begin
-
+                //play audio sound
+                hit_detected = b'1;
                 next_state = S_ACTIVE_GAME;
             end
             S_GAME_OVER: begin
@@ -46,11 +46,12 @@ module Control();
                 // transition to S_RESET or S_LOBBY based on user input
                 next_state = S_LOBBY; // or S_RESET based on user choice
             end
-            S_RESET: begin //
-                next_state = S_INIT;
+            S_RESET: begin // reset all control signals
+                counter = d'0;
+                next_state = S_LOBBY;
             end
             default: begin
-                next_state = S_INIT;
+                next_state = S_LOBBY;
             end
         endcase
     end
@@ -58,11 +59,11 @@ module Control();
     // Sequential logic for state transition
     always @(posedge clk or posedge reset) begin
         if (reset) 
-            current_state <= S_INIT;
+            current_state <= S_RESET;
         else 
             current_state <= next_state;
     end
 
-    // Add other logic as needed for each state
+
 
 endmodule

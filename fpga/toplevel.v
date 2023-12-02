@@ -1,16 +1,31 @@
-`timescale 1ns / 1ns
+/** TESTING TRANSITION FROM LOBBY TO GAME START WITH MIF CHANGE **/
+module topLevel( 
+    input CLOCK_50,  // System clock
+    input KEY0,      // Start button
+    input reset,     // System reset
+    // ... other inputs ...
+    output [8:0] board_out  // Ootput to display
+);
+    wire [2:0] state;
+    input wire iStart = KEY0; 
 
-module toplevel(GPIO_0, GPIO_1, GPIO_2, LEDR);
-    input [0:0] GPIO_0;  
-    input [0:0] GPIO_1; 
-    input [0:0] GPIO_2;  
-    output [9:0] LEDR;  
+    // Instantiate Control module
+    Control ctrl (
+        .clk(CLOCK_50), 
+        .reset(reset), 
+        .iStart(iStart), 
+        .state(state)
+    );
 
-    // first three LEDs to the GPIO inputs so we know the binary value
-    assign LEDR[0] = GPIO_0[0];
-    assign LEDR[1] = GPIO_1[0];
-    assign LEDR[2] = GPIO_2[0];
+    // Instantiate datapath module
+    datapath dp (
+        .clk(CLOCK_50), 
+        .reset(reset), 
+        .go(iStart),  // Assuming 'go' is the game start signal
+        .state(state), 
+        .board_out(board_out)
+        // ... other connections ...
+    );
 
-    // remaining LEDs are turned off
-    assign LEDR[9:3] = 7'b0;
+    // ... additional top-level logic ...
 endmodule
