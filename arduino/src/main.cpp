@@ -28,10 +28,10 @@ const int trig4 = 5;
 const int echo4 = 4;
 
 //binary representation of the signal 
-const int led1 = 12; //MSB
-const int led2 = 13;
-const int led3 = 2;
-const int led4 = 3; //LSB
+
+const int led3 = 13;
+const int led1 = 3;
+const int led2 = 2; //LSB
 
 
 //board dimensions
@@ -47,7 +47,6 @@ void setup() { //pinmode
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
   pinMode(led3, OUTPUT);
-  pinMode(led4, OUTPUT);
 
   //trig echo in pairs from 4,5,6,7,8,9,10, 11
   pinMode(trig1, OUTPUT);
@@ -82,7 +81,7 @@ void loop() {
     readDistance(trig3, echo3, 3) <= 13){ 
       //box 1 (only sensor 1 and 3 need to be high, and contained to the distance of their box)
     Serial.println("Box 1 Hit (0001)");
-    enableLED(0); //box 1 LED representation 0001
+    enableLED(1); //box 1 LED representation 0001
   }
   
 
@@ -90,7 +89,7 @@ void loop() {
 
   else if(readDistance(trig2, echo2, 2) <=10 && readDistance(trig3, echo3, 3) > 13){ //box 2
     Serial.println("Box 2 Hit (0010)");
-    enableLED(1);//box 2 LED representation 0010
+    enableLED(2);//box 2 LED representation 0010
   }
 
   //box 3
@@ -98,15 +97,15 @@ void loop() {
   //box 4
   else if(readDistance(trig4, echo4, 4) <=13 && 
   readDistance(trig1,echo1, 1) > 10){
-    Serial.println("Box 4 Hit (0100)");
-    enableLED(3);//box 4 LED representation 0011
+    Serial.println("Box 3 Hit (0011)");
+    enableLED(3);
   }
 
   //box 5
 
   else if(readDistance(trig2, echo2, 2) > 10 && readDistance(trig4, echo4, 4) > 13 && readDistance(trig4, echo4, 4) <=26){
-    Serial.println("Box 5 Hit (0101)");
-    enableLED(4);//box 5 LED representation 0011
+    Serial.println("Box 4 Hit (0100)");
+    enableLED(4);
   }
 
   //box 6
@@ -122,7 +121,6 @@ void loop() {
     digitalWrite(led1, LOW);
     digitalWrite(led2, LOW);
     digitalWrite(led3, LOW);
-    digitalWrite(led4, LOW);
   }
 
   delay(2);
@@ -150,33 +148,33 @@ double readDistance(int trigPin, int echoPin, int sensorNum) {
 
 void enableLED(int box) {
   // convert the box number to binary and output the signal on LEDs
-  if(box == 0){ //binary 0001
-     digitalWrite(led1, LOW);
+  if(box == 1){ //binary 0001
+     digitalWrite(led1, HIGH);
      digitalWrite(led2, LOW);
      digitalWrite(led3, LOW);
-     digitalWrite(led4, HIGH);
+
   }
 
-  else if(box == 1){ //binary 0010
+  else if(box == 2){ //binary 0010
+     digitalWrite(led1, LOW);
+     digitalWrite(led2, HIGH);
+     digitalWrite(led3, LOW);
+
+  }
+
+  
+  else if(box == 3){ //binary 0011
+     digitalWrite(led1, HIGH);
+     digitalWrite(led2, HIGH);
+     digitalWrite(led3, LOW);
+
+  }
+
+  else if(box == 4){ //binary 0100
      digitalWrite(led1, LOW);
      digitalWrite(led2, LOW);
      digitalWrite(led3, HIGH);
-     digitalWrite(led4, LOW);
-  }
-
-  else if(box == 3){ //binary 0100
-     digitalWrite(led1, LOW);
-     digitalWrite(led2, HIGH);
-     digitalWrite(led3, LOW);
-     digitalWrite(led4, LOW);
     
-  }
-
-  else if(box == 4){ //binary 0101
-     digitalWrite(led1, LOW);
-     digitalWrite(led2, HIGH);
-     digitalWrite(led3, LOW);
-     digitalWrite(led4, HIGH);
   }
 //  digitalWrite(led1, (box >> 3) & 1);
 //  digitalWrite(led2, (box >> 2) & 1);
