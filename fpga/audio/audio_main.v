@@ -1,6 +1,6 @@
 module audio_main (
 	 CLOCK_50, KEY, AUD_ADCDAT, AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
-	AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK, audio_en, SW, play_sound
+	AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK, audio_en, play_sound, SW
 );
 
 input				CLOCK_50, audio_en;
