@@ -8,6 +8,7 @@ module Datapath(
     output reg [3:0] game_timer, // Game timer
     output reg [1:0] difficulty_level, // Difficulty level
     output [2:0] lfsr_random_value,
+    output [1:0] box_address,
     input [2:0] GPIO_1,
     input CLOCK_50,
     input [6:0] HEX0,
@@ -19,8 +20,8 @@ module Datapath(
 reg [9:0] LEDR_reg;
 assign LEDR = LEDR_reg;
 
-reg [1:0] box_address;  // Internal register for box address logic
-wire [1:0] box_address_wire;  // Wire to connect to read_sensor
+wire [1:0] box_address_wire;  // Internal wire to connect to read_sensor
+assign box_address = box_address_wire;
 
 // Internal registers
 reg [1:0] current_box;
@@ -45,7 +46,6 @@ read_sensor sensor(
     .box_address(box_address_wire)
 );
 
-assign box_address_wire = box_address;
 
 // Game logic
 always @(posedge CLOCK_50 or posedge reset) begin
