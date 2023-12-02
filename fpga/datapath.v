@@ -7,11 +7,12 @@ module Datapath(
     output reg [10:0] score, // Score output to FSM
     output reg [3:0] game_timer, // Game timer
     output reg [1:0] difficulty_level, // Difficulty level
-    output [2:0] lfsr_random_value,
-    output [1:0] box_address,
+    output [2:0] lfsr_random_value, //straight from the LFSR
+    output [2:0] box_address, //straight from the Arduino
     input [2:0] GPIO_1,
     input CLOCK_50,
     input [6:0] HEX0,
+    input [6:0] HEX1,
     input [3:0] KEY,
 
     input AUD_ADCDAT, 
@@ -26,7 +27,7 @@ module Datapath(
 // reg [9:3] LEDR_reg;
 // assign LEDR = LEDR_reg;
 
-wire [1:0] box_address_wire;  // Internal wire to connect to read_sensor
+wire [2:0] box_address_wire;  // Internal wire to connect to read_sensor
 assign box_address = box_address_wire;
 //reg play_sound; //control signal to assert when we should start playing the sound 
 // Internal registers
@@ -46,11 +47,12 @@ lfsr_top_level lfsr_top (
 
 assign lfsr_random_value = lfsr_address;
 
-read_sensor sensor(
-    .GPIO_1(GPIO_1),
-    .LEDR(LEDR),
-    .box_address(box_address_wire)
-);
+read_sensor sensor_instance (
+        .GPIO_1(GPIO_1), 
+        .LEDR(LEDR), 
+        .box_address(box_address),  // This wire can be used for further logic if needed
+        .HEX1(HEX1)
+    );
 
 
 audio_main audio_unit (

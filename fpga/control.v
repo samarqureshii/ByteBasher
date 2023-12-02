@@ -39,6 +39,9 @@ module Control();
             S_HIT_DETECTED: begin
                 //play audio sound
                 hit_detected = b'1;
+                if(box_address == lfsr_random_value) begin
+                    correct_hit = 1b'1;
+                end
                 next_state = S_ACTIVE_GAME;
             end
             S_GAME_OVER: begin
