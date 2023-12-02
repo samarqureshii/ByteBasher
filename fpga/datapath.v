@@ -18,7 +18,7 @@ module Datapath(
     input AUD_ADCDAT, 
     inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
     output AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK,
-    input audio_en  // enable signal for audio
+    input audio_en,  // enable signal for audio
 
     output reg play_sound //if high, then that means hit detected and 
     // Additional outputs for VGA, audio, etc.
