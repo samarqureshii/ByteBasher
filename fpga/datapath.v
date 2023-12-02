@@ -5,7 +5,6 @@ module Datapath(
     input [2:0] sensor_input, // Input from read_sensor()
     input [2:0] lfsr_output, // Output from LFSR module
     output reg [10:0] score, // Score output to FSM
-    output reg [1:0] box_address, // Address of the current box
     output reg [3:0] game_timer, // Game timer
     output reg [1:0] difficulty_level, // Difficulty level
     output [2:0] lfsr_random_value,
@@ -20,6 +19,9 @@ module Datapath(
 reg [9:0] LEDR_reg;
 assign LEDR = LEDR_reg;
 
+reg [1:0] box_address;  // Internal register for box address logic
+wire [1:0] box_address_wire;  // Wire to connect to read_sensor
+
 // Internal registers
 reg [1:0] current_box;
 reg [3:0] counter; // 4-bit counter for game timer
@@ -29,7 +31,7 @@ reg hit_led;
 
 wire [2:0] lfsr_address;
 lfsr_top_level lfsr_top (
-    .CLOCK_50(clk),
+    .CLOCK_50(CLOCK_50),
     .KEY(KEY),
     .HEX0(HEX0),
     .lfsr_address(lfsr_address)  // Connect the output to lfsr_address wire
@@ -40,11 +42,13 @@ assign lfsr_random_value = lfsr_address;
 read_sensor sensor(
     .GPIO_1(GPIO_1),
     .LEDR(LEDR),
-    .box_address(box_address)
+    .box_address(box_address_wire)
 );
 
+assign box_address_wire = box_address;
+
 // Game logic
-always @(posedge clk or posedge reset) begin
+always @(posedge CLOCK_50 or posedge reset) begin
     if (reset) begin
         score <= 0;
         counter <= 0;
