@@ -13,8 +13,19 @@ module lfsr_top_level(
     reg [2:0] counter = 3'b000;
     
     // Define the lookup table with random values between 1 and 4
-    reg [2:0] lut [0:7] = {3'b001, 3'b010, 3'b011, 3'b100, 3'b001, 3'b011, 3'b010, 3'b100};
+    reg [2:0] lut [0:7]; // Declaration of the lookup table
 
+    // Initialization of the lookup table
+    initial begin
+        lut[0] = 3'b001;
+        lut[1] = 3'b010;
+        lut[2] = 3'b011;
+        lut[3] = 3'b100;
+        lut[4] = 3'b001;
+        lut[5] = 3'b011;
+        lut[6] = 3'b010;
+        lut[7] = 3'b100;
+    end
     // Counter logic
     always @(posedge CLOCK_50) begin
         if (~KEY[0]) // Reset condition
