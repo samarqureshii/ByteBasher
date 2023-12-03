@@ -56,34 +56,36 @@ reg [9:0] addressMario;
 // sound_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
 gameover_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
  
-always @(posedge CLOCK_50)
-	if(delay_cnt == delay) begin
-		delay_cnt <= 0;
-		snd <= !snd;
-	end else delay_cnt <= delay_cnt + 1;
-
 always @(posedge CLOCK_50) begin
     if (lobby_sound == 1'b1) begin
-        if(beatCountMario == 23'd2500000)begin
+        // Logic for handling beatCountMario and addressMario
+        if (beatCountMario == 23'd2500000) begin
             beatCountMario <= 23'b0;
-            if(addressMario < 10'd999)
+            if (addressMario < 10'd999) begin
                 addressMario <= addressMario + 1;
-            else begin
+            end else begin
                 addressMario <= 0;
-                beatCountMario <= 0;
             end
+
+            // Logic for snd and delay_cnt
+            if (delay_cnt == delay) begin
+                delay_cnt <= 0;
+                snd <= !snd;
+            end else begin
+                delay_cnt <= delay_cnt + 1;
+            end
+        end else begin
+            beatCountMario <= beatCountMario + 1;
         end
-	else 
-		beatCountMario <= beatCountMario + 1;
-    end
-    
-    else begin //if the signal is not asserted 
+    end else begin
+        // Reset logic if lobby_sound is not asserted
         addressMario <= 0;
         beatCountMario <= 0;
         snd <= 0;
+        delay_cnt <= 0; // Reset the delay counter as well
     end
-
 end
+
 
 wire [31:0] sound = snd ? 32'd100000000 : -32'd100000000;
 

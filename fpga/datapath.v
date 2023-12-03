@@ -113,7 +113,7 @@
             .mif_control_signal(mif_control_signal)
         );
 
-    input [2:0] mif_control_signal;
+    //input [2:0] mif_control_signal;
 
     // counter counter_instance (
     //         .CLOCK_50(CLOCK_50), 
