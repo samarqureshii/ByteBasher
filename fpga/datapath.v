@@ -39,12 +39,12 @@ reg hit_led;
 
 wire [2:0] lfsr_address;
 // Instantiate lfsr_top_level
-lfsr_top_level lfsr_instance (
-    .CLOCK_50(CLOCK_50),
-    .KEY(KEY),
-    .HEX0(HEX0),
-    .lfsr_address(lfsr_address)
-);
+// lfsr_top_level lfsr_instance (
+//     .CLOCK_50(CLOCK_50),
+//     .KEY(KEY),
+//     .HEX0(HEX0),
+//     .lfsr_address(lfsr_address)
+// );
 
 assign lfsr_random_value = lfsr_address;
 

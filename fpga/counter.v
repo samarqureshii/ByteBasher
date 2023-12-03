@@ -1,13 +1,13 @@
 // Updated counter module to output a 6-bit value
 module counter (
     input CLOCK_50, 
-    input [9:0] SW, 
+    input [9:8] SW, 
     output [6:0] HEX4, 
     output [6:0] HEX5,
     output [5:0] game_timer // 6-bit output for the game timer
 ); 
     wire [3:0] onesValue, tensValue;
-    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[1:0], onesValue, tensValue, game_timer);
+    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[8], onesValue, tensValue, game_timer);
 
     hex_decoder hd_ones (onesValue, HEX4); //ones place (HEX4)
     hex_decoder hd_tens (tensValue, HEX5); //tens place (HEX5)
