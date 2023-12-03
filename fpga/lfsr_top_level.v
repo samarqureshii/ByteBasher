@@ -2,6 +2,8 @@
 
 `timescale 1ns / 1ns
 
+`timescale 1ns / 1ns
+
 module lfsr_top_level(
     input CLOCK_50,
     input [3:0] KEY,
@@ -9,41 +11,38 @@ module lfsr_top_level(
     output reg [2:0] lfsr_address // Changed to reg
 );
 
-    // Define a simple counter
-    reg [2:0] counter = 3'b000;
-    
-    // Define the lookup table with random values between 1 and 4
-    reg [2:0] lut [0:7]; // Declaration of the lookup table
+    reg [3:0] counter = 4'b0000; // Increased counter size for a larger LUT
 
-    // Initialization of the lookup table
+    // Expanded LUT with more 'random' values
+    reg [2:0] lut [0:15]; // Expanded LUT size
+
     initial begin
-        lut[0] = 3'b001;
-        lut[1] = 3'b010;
-        lut[2] = 3'b011;
-        lut[3] = 3'b100;
-        lut[4] = 3'b001;
-        lut[5] = 3'b011;
-        lut[6] = 3'b010;
-        lut[7] = 3'b100;
+        // Initialize the LUT with more varied values
+        lut[0] = 3'b001; lut[1] = 3'b010; lut[2] = 3'b011; lut[3] = 3'b100;
+        lut[4] = 3'b001; lut[5] = 3'b011; lut[6] = 3'b010; lut[7] = 3'b100;
+        lut[8] = 3'b011; lut[9] = 3'b001; lut[10] = 3'b100; lut[11] = 3'b010;
+        lut[12] = 3'b100; lut[13] = 3'b011; lut[14] = 3'b001; lut[15] = 3'b010;
     end
-    // Counter logic
+
+    // Modified counter logic to jump around the LUT
     always @(posedge CLOCK_50) begin
         if (~KEY[0]) // Reset condition
-            counter <= 3'b000;
+            counter <= 4'b0000;
         else
-            counter <= counter + 1'b1;
+            counter <= counter + 4'b0011; // Change increment value for variety
     end
 
     // Update the lfsr_address from the lookup table
     always @(posedge CLOCK_50) begin
-        lfsr_address <= lut[counter];
+        lfsr_address <= lut[counter[3:0]]; // Use 4 bits of the counter for LUT indexing
     end
 
-    // Hex display logic (remains the same)
+    // Hex display logic remains the same
     wire [3:0] hex_input = {1'b0, lfsr_address};
     hex_decoder_lfsr hd_lfsr(hex_input, HEX0);
 
 endmodule
+
 
 // ... (Other modules remain the same)
 
