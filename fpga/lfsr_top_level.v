@@ -30,11 +30,22 @@ module lfsr_top_level(
     );
 
     // LFSR reset and reseed logic
+    // always @(posedge CLOCK_50 or posedge reset_signal) begin
+    //     if (reset_signal) begin
+    //         // Capture the free-running counter value as a new seed on reset
+    //         if (!previous_reset_state) begin
+    //             seed <= free_running_counter;
+    //         end
+    //         previous_reset_state <= 1'b1;
+    //     end else begin
+    //         previous_reset_state <= 1'b0;
+    //     end
+    // end
+
     always @(posedge CLOCK_50 or posedge reset_signal) begin
         if (reset_signal) begin
-            // Capture the free-running counter value as a new seed on reset
             if (!previous_reset_state) begin
-                seed <= free_running_counter;
+                seed <= 3'b001; // Fixed seed value
             end
             previous_reset_state <= 1'b1;
         end else begin
