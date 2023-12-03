@@ -14,6 +14,7 @@ module Datapath(
     input [6:0] HEX0,
     input [6:0] HEX1,
     input [3:0] KEY,
+    input [3:0] SW,
 
     input AUD_ADCDAT, 
     inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
@@ -32,9 +33,13 @@ module Datapath(
 //wire [2:0] box_address_wire;  // Internal wire to connect to read_sensor
 //assign box_address = box_address_wire;
 //reg play_sound; //control signal to assert when we should start playing the sound 
+
 // Internal registers
 reg [1:0] current_box;
 reg [3:0] counter; // 4-bit counter for game timer
+reg [2:0] incremented_box_address;
+assign incremented_box_address <= box_address + 1;
+
 //reg reset_signal;
 //reg [2:0] seed;
 // reg hit_led;
@@ -124,6 +129,7 @@ always @(posedge CLOCK_50 or posedge reset) begin
         //difficulty_level <= 1;
         lobby_sound = 1'b0;
         play_sound = 1'b0; //if we register a hit and the mif_control_signal matches 
+        incremented_box_address <= 3'b000; 
         //LEDR_reg[9] <= 1'b0;
         // Reset other states
     end 
