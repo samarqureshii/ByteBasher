@@ -1,65 +1,41 @@
 `timescale 1ns / 1ns
 
+`timescale 1ns / 1ns
+
 module lfsr_top_level(
     input CLOCK_50,
     input [3:0] KEY,
     output [6:0] HEX0,
-    output [2:0] lfsr_address  // Add this output port
+    output reg [2:0] lfsr_address // Changed to reg
 );
 
+    // Define a simple counter
+    reg [2:0] counter = 3'b000;
+    
+    // Define the lookup table with random values between 1 and 4
+    reg [2:0] lut [0:7] = {3'b001, 3'b010, 3'b011, 3'b100, 3'b001, 3'b011, 3'b010, 3'b100};
 
-    reg [2:0] seed = 3'b001; // Initial seed value
-    wire [2:0] lfsr_out;
-    wire [2:0] box_mapped;  // Changed to 3-bit
-    wire [3:0] hex_input;
-    wire reset_signal = ~KEY[0]; // Active low reset signal
-    reg previous_reset_state = 1'b0; // To detect reset signal edges
-
-    // Free-running counter for seeding
-    reg [2:0] free_running_counter = 3'b000;
+    // Counter logic
     always @(posedge CLOCK_50) begin
-        free_running_counter <= free_running_counter + 1;
+        if (~KEY[0]) // Reset condition
+            counter <= 3'b000;
+        else
+            counter <= counter + 1'b1;
     end
 
-    lfsr_3bit lfsr (
-        .out(lfsr_out),
-        .enable(1'b1),
-        .clk(CLOCK_50),
-        .reset(reset_signal),
-        .seed(seed)
-    );
-
-    // LFSR reset and reseed logic
-    // always @(posedge CLOCK_50 or posedge reset_signal) begin
-    //     if (reset_signal) begin
-    //         // Capture the free-running counter value as a new seed on reset
-    //         if (!previous_reset_state) begin
-    //             seed <= free_running_counter;
-    //         end
-    //         previous_reset_state <= 1'b1;
-    //     end else begin
-    //         previous_reset_state <= 1'b0;
-    //     end
-    // end
-
-    always @(posedge CLOCK_50 or posedge reset_signal) begin
-        if (reset_signal) begin
-            if (!previous_reset_state) begin
-                seed <= 3'b001; // Fixed seed value
-            end
-            previous_reset_state <= 1'b1;
-        end else begin
-            previous_reset_state <= 1'b0;
-        end
+    // Update the lfsr_address from the lookup table
+    always @(posedge CLOCK_50) begin
+        lfsr_address <= lut[counter];
     end
 
-    // Rest of the logic remains the same
-    // Modified map_lfsr_to_boxes instantiation
-    map_lfsr_to_boxes map_lfsr (.lfsr_out(lfsr_out), .box(box_mapped));
-    assign lfsr_address = box_mapped;
-    assign hex_input = {1'b0, box_mapped};  // Adjusted for 3-bit box_mapped
-    hex_decoder hd_lfsr(hex_input, HEX0);
+    // Hex display logic (remains the same)
+    wire [3:0] hex_input = {1'b0, lfsr_address};
+    hex_decoder_lfsr hd_lfsr(hex_input, HEX0);
+
 endmodule
+
+// ... (Other modules remain the same)
+
 
 module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [2:0] box);
     always @(lfsr_out) begin
@@ -95,7 +71,7 @@ module lfsr_3bit (out, enable, clk, reset, seed);
     end
 endmodule
 
-module hex_decoder(c, display);
+module hex_decoder_lfsr(c, display);
     input [3:0] c;
     output [6:0] display;
     

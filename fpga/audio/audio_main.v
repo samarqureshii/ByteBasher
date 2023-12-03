@@ -43,12 +43,8 @@ localparam winstart = 18'd0,
 			  cheerend = 18'd137138;
 			  
 always @(posedge CLOCK_50) begin
-    if (~hit_detected) begin
-        // Reset address count when play_sound is inactive
-        addr_count <= 18'b0;
-        clock_count <= 11'b0;
-    end else begin
-        // Set sound range based on hit_detected
+	if(correct_hit == 1'b1 )begin //if we have the correct hit 
+
         soundstart <= winstart;
         soundend <= winend;
 
@@ -62,6 +58,12 @@ always @(posedge CLOCK_50) begin
             end else addr_count <= soundstart;
         end else clock_count <= clock_count + 1;
     end
+
+	else begin
+        // Reset address count when play_sound is inactive
+        addr_count <= 18'b0;
+        clock_count <= 11'b0;
+    end 
 
     if(~KEY[0]) begin
         addr_count <= 18'b0;
