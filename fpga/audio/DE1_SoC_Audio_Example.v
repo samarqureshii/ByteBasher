@@ -53,7 +53,7 @@ reg [9:0] addressMario;
 													
 // sound_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
 gameover_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
-
+ 
 always @(posedge CLOCK_50)
 	if(delay_cnt == delay) begin
 		delay_cnt <= 0;
@@ -74,7 +74,7 @@ always @(posedge CLOCK_50) begin
 		beatCountMario <= beatCountMario + 1;
 end
 
-wire [31:0] sound = snd ? 32'd100000000 : -32'd100000000;
+wire [31:0] sound = (lobby_sound && snd) ? 32'd100000000 : -32'd100000000;
 
 assign read_audio_in			= audio_in_available & audio_out_allowed;
 assign left_channel_audio_out	= left_channel_audio_in+sound;

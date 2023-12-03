@@ -11,12 +11,15 @@ module fill
 	VGA_SYNC_N,
 	VGA_R,
 	VGA_G,
-	VGA_B
+	VGA_B,
+	mif_control_signal
 	);
 
 	input CLOCK_50;
 	input [2:0] SW;
 	input [1:0] KEY;
+	output reg [2:0] mif_control_signal;
+	assign mif_control_signal = SW;
 	
 	// Declare your inputs and outputs here
 	
@@ -99,12 +102,12 @@ module fill
 		 
 
 		// rom instantiation
-		start_rom r0 (.clock(clock), .address(address), .q(colour0));		
-		rom_one r1 (.clock(clock), .address(address), .q(colour1));
-		rom_two r2 (.clock(clock), .address(address), .q(colour2));
-		rom_three r3 (.clock(clock), .address(address), .q(colour3));
-		rom_four r4 (.clock(clock), .address(address), .q(colour4));
-		rom_end r5 (.clock(clock), .address(address), .q(colour5));
+		start_rom r0 (.clock(clock), .address(address), .q(colour0)); //empty grid 000
+		rom_one r1 (.clock(clock), .address(address), .q(colour1)); // mole in location 001
+		rom_two r2 (.clock(clock), .address(address), .q(colour2)); //mole in location 010
+		rom_three r3 (.clock(clock), .address(address), .q(colour3)); //mole in location 011
+		rom_four r4 (.clock(clock), .address(address), .q(colour4)); //mole in location 100
+		rom_end r5 (.clock(clock), .address(address), .q(colour5)); // game over screen 
 		
 
 		// ROM selector
@@ -113,12 +116,12 @@ module fill
 				  colour <= colour0; // Assuming you want to reset to colour0
 			 end else begin
 				  case (current_level)
-						3'b001: colour <= colour0;
-						3'b010: colour <= colour1;
-						3'b011: colour <= colour2;
-						3'b100: colour <= colour3;
-						3'b101: colour <= colour4;
-						3'b110: colour <= colour5;
+						3'b001: colour <= colour0; //star screen 
+						3'b010: colour <= colour1; //mole in location 001 (1)
+						3'b011: colour <= colour2; //mole in location 010 (2)
+						3'b100: colour <= colour3; //mole in location 011 (3)
+						3'b101: colour <= colour4; //mole in location 100 (4)
+						3'b110: colour <= colour5; //game over screen at SW 110
 //						default: colour <= 0;
 				  endcase
 			 end 

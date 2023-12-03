@@ -35,6 +35,8 @@ module Control();
                     next_state = S_HIT_DETECTED;
                 else if (counter == d'60) //once the counter hits 60
                     next_state = S_GAME_OVER;
+                else if(~KEY[0])
+                    reset = 1'b1;
                 else 
                     next_state = S_ACTIVE_GAME;
             end

@@ -20,7 +20,9 @@ module Datapath(
     output AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK,
     input audio_en,  // enable signal for audio
 
-    output reg play_sound //if high, then that means hit detected and 
+
+    output reg play_sound, //if high, then that means hit detected and 
+    output reg start_sound //if high (on the lobby mif,), we play the mario sound 
     // Additional outputs for VGA, audio, etc.
 );
 
@@ -35,9 +37,9 @@ reg [1:0] current_box;
 reg [3:0] counter; // 4-bit counter for game timer
 //reg reset_signal;
 //reg [2:0] seed;
-reg hit_led;
+// reg hit_led;
 
-wire [2:0] lfsr_address;
+// wire [2:0] lfsr_address;
 // Instantiate lfsr_top_level
 // lfsr_top_level lfsr_instance (
 //     .CLOCK_50(CLOCK_50),
@@ -46,9 +48,9 @@ wire [2:0] lfsr_address;
 //     .lfsr_address(lfsr_address)
 // );
 
-assign lfsr_random_value = lfsr_address;
+// assign lfsr_random_value = lfsr_address;
 
-read_sensor sensor_instance (
+read_sensor arduino_GPIO ( //display the box number on HEX1
         .GPIO_1(GPIO_1), 
         .LEDR(LEDR), 
         .box_address(box_address),  // This wire can be used for further logic if needed
@@ -56,7 +58,7 @@ read_sensor sensor_instance (
     );
 
 
-audio_main audio_unit (
+audio_main audio_unit1( //audio controller for 
     .CLOCK_50(CLOCK_50), 
     .KEY(KEY), 
     .AUD_ADCDAT(AUD_ADCDAT), 
@@ -72,34 +74,72 @@ audio_main audio_unit (
     .SW(4'b0) // Assuming SW is not used in Datapath, set to a default value
 );
 
+ audio_start audio_unit2 (
+        .CLOCK_50(CLOCK_50),
+        .KEY(KEY),
+        .AUD_ADCDAT(AUD_ADCDAT),
+        .AUD_BCLK(AUD_BCLK),
+        .AUD_ADCLRCK(AUD_ADCLRCK),
+        .AUD_DACLRCK(AUD_DACLRCK),
+        .FPGA_I2C_SDAT(FPGA_I2C_SDAT),
+        .AUD_XCK(AUD_XCK),
+        .AUD_DACDAT(AUD_DACDAT),
+        .FPGA_I2C_SCLK(FPGA_I2C_SCLK),
+        .SW(SW),
+        .lobby_sound(lobby_sound)
+    );
+
+
+fill intermediary_datapath ( //vga datapath and FSM
+        .CLOCK_50(CLOCK_50),
+        .SW(SW),
+        .KEY(KEY),
+        .VGA_CLK(VGA_CLK),
+        .VGA_HS(VGA_HS),
+        .VGA_VS(VGA_VS),
+        .VGA_BLANK_N(VGA_BLANK_N),
+        .VGA_SYNC_N(VGA_SYNC_N),
+        .VGA_R(VGA_R),
+        .VGA_G(VGA_G),
+        .VGA_B(VGA_B),
+        .mif_control_signal(mif_control_signal)
+    );
+
+// counter counter_instance (
+//         .CLOCK_50(CLOCK_50), 
+//         .SW({2'b00, control_SW}),  // Assuming only two switches are used for control
+//         .HEX4(HEX4), 
+//         .HEX5(HEX5),
+//         .game_timer(game_timer)
+//     );
+
 
 // Game logic
 always @(posedge CLOCK_50 or posedge reset) begin
-    if (reset) begin
+    if (reset) begin //when we click KEY[0], transition to the reset state 
         score <= 0;
-        counter <= 0;
-        game_timer <= 0;
+        //counter <= 0;
+        game_timer <= 6'd0; // Reset game_timer for next game
+        game_over = 1'b0; 
         //difficulty_level <= 1;
-        hit_led <= 0;
-        play_sound = 1'b0;
+        lobby_sound = 1'b0;
+        play_sound = 1'b0; //if we register a hit and the mif_control_signal matches 
         //LEDR_reg[9] <= 1'b0;
         // Reset other states
-    end else if (start_game) begin
-        game_timer <= game_timer + 1;
-        if (counter >= 6'd60) begin
+    end 
+    else if (mif_control_signal == 3'b0000) begin //lobby screen (play the start sound)
+        lobby_sound = 1'b1;
+    end
 
-            game_timer <= 6'd0; // Reset game_timer for next game
-        end
-
-        // Update difficulty based on game_timer
-        // if (game_timer < 6'd20) difficulty_level <= 1;
-        // else if (game_timer < 6'd40) 
-        //     difficulty_level <= 2;
-        // else 
-        //     difficulty_level <= 3;
-
+    else if (mif_countrol_signal != 3'b000) begin //game actually starts 
+        lobby_sound = 1'b0;
+        //game_timer <= game_timer + 1;
+        // if (counter >= 6'd60) begin
+        //     game_over = 1'b1; 
+            
+        // end
         // Check if sensor input matches the LFSR box
-        if (box_address == 3'b001) begin //test
+        if (box_address == mif_control_signal) begin //if the current mif matches the box address
             //hit_led <= 1; // Turn on LED 
             //LEDR_reg[9] <= 1'b1;
             play_sound = 1'b1;

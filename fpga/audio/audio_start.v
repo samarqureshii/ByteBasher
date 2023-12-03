@@ -14,11 +14,13 @@ module audio_start ( //audio to start playing in the lobby
 
 	FPGA_I2C_SCLK,
 	SW,
+    lobby_sound
 );
 
 input				CLOCK_50;
 input		[3:0]	KEY;
 input		[3:0]	SW;
+input lobby_sound;
 
 input				AUD_ADCDAT;
 
