@@ -1,36 +1,21 @@
-module fill
-	(
-	CLOCK_50, 
-	SW,
-	KEY,
-	// The ports below are for the VGA output.  Do not change.
-	VGA_CLK, 
-	VGA_HS,
-	VGA_VS,
-	VGA_BLANK_N,
-	VGA_SYNC_N,
-	VGA_R,
-	VGA_G,
-	VGA_B,
-	mif_control_signal
-	);
+module fill (
+    input CLOCK_50, 
+    input [2:0] SW,
+    input [1:0] KEY,
+    // The ports below are for the VGA output.  Do not change.
+    output VGA_CLK, 
+    output VGA_HS,
+    output VGA_VS,
+    output VGA_BLANK_N,
+    output VGA_SYNC_N,
+    output [7:0] VGA_R,   // Assuming 8-bit for each color channel
+    output [7:0] VGA_G,   // Assuming 8-bit for each color channel
+    output [7:0] VGA_B,   // Assuming 8-bit for each color channel
+    output [2:0] mif_control_signal
+);
 
-	input CLOCK_50;
-	input [2:0] SW;
-	input [1:0] KEY;
-	output reg [2:0] mif_control_signal;
-	assign mif_control_signal = SW;
-	
-	// Declare your inputs and outputs here
-	
-	output VGA_CLK;
-	output VGA_HS;
-	output VGA_VS;
-	output VGA_BLANK_N;
-	output VGA_SYNC_N;
-	output [7:0] VGA_R;  
-	output [7:0] VGA_G; 
-	output [7:0] VGA_B;  
+    // Continuous assignment for mif_control_signal
+    assign mif_control_signal = SW;
 
 	wire resetn;
 	assign resetn = KEY[0];
