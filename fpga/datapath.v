@@ -6,7 +6,7 @@ module Datapath(
     input [2:0] lfsr_output, // Output from LFSR module
     output reg [10:0] score, // Score output to FSM
     output reg [3:0] game_timer, // Game timer
-    output reg [1:0] difficulty_level, // Difficulty level
+    //output reg [1:0] difficulty_level, // Difficulty level
     output [2:0] lfsr_random_value, //straight from the LFSR
     output [2:0] box_address, //straight from the Arduino
     input [2:0] GPIO_1,
@@ -79,36 +79,36 @@ always @(posedge CLOCK_50 or posedge reset) begin
         score <= 0;
         counter <= 0;
         game_timer <= 0;
-        difficulty_level <= 1;
+        //difficulty_level <= 1;
         hit_led <= 0;
         play_sound = 1'b0;
         //LEDR_reg[9] <= 1'b0;
         // Reset other states
     end else if (start_game) begin
         game_timer <= game_timer + 1;
-        if (game_timer >= 60) begin
+        if (counter >= 6'd60) begin
 
-            game_timer <= 0; // Reset game_timer for next game
+            game_timer <= 6'd0; // Reset game_timer for next game
         end
 
         // Update difficulty based on game_timer
-        if (game_timer < 20) difficulty_level <= 1;
-        else if (game_timer < 40) 
-            difficulty_level <= 2;
-        else 
-            difficulty_level <= 3;
+        // if (game_timer < 6'd20) difficulty_level <= 1;
+        // else if (game_timer < 6'd40) 
+        //     difficulty_level <= 2;
+        // else 
+        //     difficulty_level <= 3;
 
         // Check if sensor input matches the LFSR box
-        if (lfsr_random_value == box_address) begin
-            hit_led <= 1; // Turn on LED 
+        if (box_address == 3'b001) begin //test
+            //hit_led <= 1; // Turn on LED 
             //LEDR_reg[9] <= 1'b1;
             play_sound = 1'b1;
-            score <= score + difficulty_level; // Increment score based on difficulty
+            score <= score + 1; // Increment score 
         end else begin
-            hit_led <= 0; // Turn off LED
+            //hit_led <= 0; // Turn off LED
             //LEDR_reg[9] <= 1'b0;
             play_sound = 1'b0;
-            score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
+            //score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
         end
     end
 end

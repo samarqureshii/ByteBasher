@@ -43,7 +43,7 @@ localparam winstart = 18'd0,
 			  cheerend = 18'd137138;
 			  
 always @(posedge CLOCK_50) begin
-	if(correct_hit == 1'b1 )begin //if we have the correct hit 
+	if(play_sound == 1'b1 )begin //if we have the correct hit 
 
         soundstart <= winstart;
         soundend <= winend;
