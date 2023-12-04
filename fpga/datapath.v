@@ -14,7 +14,7 @@
         output [6:0] HEX0,
         output [6:0] HEX1, 
         input [3:0] KEY,
-        input [3:0] SW,
+        input [2:0] SW,
 
         input AUD_ADCDAT, 
         inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
@@ -166,7 +166,7 @@
                 
             // end
             // Check if sensor input matches the LFSR box
-            if (box_addr == SW) begin //if the current mif matches the box address
+            if (GPIO_1 == SW) begin //if the current mif matches the box address
                 //hit_led <= 1; // Turn on LED 
                 //LEDR_reg[9] <= 1'b1;
                 play_sound <= 1'b1;
