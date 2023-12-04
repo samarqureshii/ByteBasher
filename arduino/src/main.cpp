@@ -148,30 +148,30 @@ double readDistance(int trigPin, int echoPin, int sensorNum) {
 
 void enableLED(int box) {
   // convert the box number to binary and output the signal on LEDs
-  if(box == 1){ //binary 0001
-     digitalWrite(led1, HIGH);
-     digitalWrite(led2, LOW);
+  if(box == 1){ //binary 010
+     digitalWrite(led1, LOW);
+     digitalWrite(led2, HIGH);
      digitalWrite(led3, LOW);
 
   }
 
-  else if(box == 2){ //binary 0010
-     digitalWrite(led1, LOW);
+  else if(box == 2){ //binary 011
+     digitalWrite(led1, HIGH);
      digitalWrite(led2, HIGH);
      digitalWrite(led3, LOW);
 
   }
 
   
-  else if(box == 3){ //binary 0011
-     digitalWrite(led1, HIGH);
-     digitalWrite(led2, HIGH);
-     digitalWrite(led3, LOW);
+  else if(box == 3){ //binary 100
+     digitalWrite(led1, LOW);
+     digitalWrite(led2, LOW);
+     digitalWrite(led3, HIGH);
 
   }
 
-  else if(box == 4){ //binary 0100
-     digitalWrite(led1, LOW);
+  else if(box == 4){ //binary 0101
+     digitalWrite(led1, HIGH);
      digitalWrite(led2, LOW);
      digitalWrite(led3, HIGH);
     

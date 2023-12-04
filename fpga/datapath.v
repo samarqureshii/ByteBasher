@@ -77,7 +77,7 @@
 
     audio_main audio_unit1( //audio controller for 
         .CLOCK_50(CLOCK_50), 
-        .KEY(KEY), 
+        .KEY(KEY[1]), 
         .AUD_ADCDAT(AUD_ADCDAT), 
         .AUD_BCLK(AUD_BCLK), 
         .AUD_ADCLRCK(AUD_ADCLRCK), 
@@ -148,25 +148,25 @@
             //game_timer <= 6'd0; // Reset game_timer for next game
             //game_over = 1'b0; 
             //difficulty_level <= 1;
-            lobby_sound<= 1'b0;
+            //lobby_sound<= 1'b0;
             play_sound <= 1'b0; //if we register a hit and the mif_control_signal matches 
             //incremented_box_address <= 3'b000; 
             //LEDR_reg[9] <= 1'b0;
             // Reset other states
         end 
-        else if (SW == 3'b000) begin //lobby screen (play the start sound)
-            lobby_sound <= 1'b1;
-        end
+        // else if (SW == 3'b000) begin //lobby screen (play the start sound)
+        //     lobby_sound <= 1'b1;
+        // end
 
-        else if (SW != 3'b000) begin //game actually starts 
-            lobby_sound <= 1'b0;
-            //game_timer <= game_timer + 1;
-            // if (counter >= 6'd60) begin
-            //     game_over = 1'b1; 
+        // else if (SW != 3'b000) begin //game actually starts 
+        //     lobby_sound <= 1'b0;
+        //     //game_timer <= game_timer + 1;
+        //     // if (counter >= 6'd60) begin
+        //     //     game_over = 1'b1; 
                 
             // end
             // Check if sensor input matches the LFSR box
-            if (box_address == SW) begin //if the current mif matches the box address
+            if (box_addr == SW) begin //if the current mif matches the box address
                 //hit_led <= 1; // Turn on LED 
                 //LEDR_reg[9] <= 1'b1;
                 play_sound <= 1'b1;
@@ -179,7 +179,7 @@
                 play_sound <= 1'b0;
                 //score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
             end
-        end
+        //end
     end
 
     // Additional logic for VGA, audio, etc.

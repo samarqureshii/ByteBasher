@@ -4,7 +4,7 @@ module audio_main (
 );
 
 input				CLOCK_50, audio_en;
-input		[3:0]	resetn;
+input			resetn;
 //input [1:0] sound_select;
 input				AUD_ADCDAT;
 input play_sound;
@@ -64,7 +64,7 @@ always @(posedge CLOCK_50) begin
         clock_count <= 11'b0;
     end 
 
-    if(~resetn[0]) begin
+    if(~resetn) begin
         addr_count <= 18'b0;
         clock_count <= 11'b0;
     end
@@ -84,7 +84,7 @@ win_rom ram(.address(address_count), .clock(CLOCK_50), .q(audio_from_ram));
 
 Audio_Controller Audio_Controller (
 	.CLOCK_50					(CLOCK_50),
-	.reset						(~resetn[0]),
+	.reset						(~resetn),
 	.clear_audio_in_memory	(),
 	.read_audio_in				(read_audio_in),
 	.clear_audio_out_memory		(),
@@ -108,6 +108,6 @@ avconf #(.USE_MIC_INPUT(1)) avc (
 	.FPGA_I2C_SCLK					(FPGA_I2C_SCLK),
 	.FPGA_I2C_SDAT					(FPGA_I2C_SDAT),
 	.CLOCK_50					(CLOCK_50),
-	.reset						(~resetn[0])
+	.reset						(~resetn)
 );
 endmodule
