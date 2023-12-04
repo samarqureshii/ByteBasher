@@ -15,6 +15,7 @@
         output [6:0] HEX1, 
         input [3:0] KEY,
         input [2:0] SW,
+        output [9:0] LEDR,
 
         input AUD_ADCDAT, 
         inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
@@ -36,10 +37,10 @@
         output [7:0] VGA_B
     );
 
-    wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor
-    //assign LEDR_internal = LEDR;
-    wire [6:0] HEX1_internal;  // Internal wire for HEX1 output from read_sensor
-    //assign HEX1_internal = HEX1;
+    // wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor
+    // //assign LEDR_internal = LEDR;
+    // wire [6:0] HEX1_internal;  // Internal wire for HEX1 output from read_sensor
+    // //assign HEX1_internal = HEX1;
 
 
     // reg [9:3] LEDR_reg;
@@ -71,7 +72,7 @@
     // );
 
     // assign lfsr_random_value = lfsr_address;
-    read_sensor arduino_GPIO (.input_signal(GPIO_1), .output_signal(LEDR), .box_addr(box_address), .hex_display(HEX1));
+    read_sensor arduino_GPIO (.input_signal(GPIO_1), .output_signal(LEDR[2:0]), .box_addr(box_address), .hex_display(HEX1));
 
 
 
@@ -227,7 +228,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
             //game_over = 1'b0; 
             //difficulty_level <= 1;
             //lobby_sound<= 1'b0;
-            play_sound <= 1'b0; //if we register a hit and the mif_control_signal matches 
+            play_sound = 1'b0; //if we register a hit and the mif_control_signal matches 
             //incremented_box_address <= 3'b000; 
             //LEDR_reg[9] <= 1'b0;
             // Reset other states
@@ -247,14 +248,15 @@ avconf #(.USE_MIC_INPUT(1)) avc (
             if (GPIO_1 == SW) begin //if the current mif matches the box address
                 //hit_led <= 1; // Turn on LED 
                 //LEDR_reg[9] <= 1'b1;
-                play_sound <= 1'b1;
+                // LEDR[9] = 1'b1;
+                play_sound = 1'b1;
                 //score <= score + 1; // Increment score 
             end 
             
             else begin
                 //hit_led <= 0; // Turn off LED
                 //LEDR_reg[9] <= 1'b0;
-                play_sound <= 1'b0;
+                play_sound = 1'b0;
                 //score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
             end
         //end
