@@ -1,22 +1,20 @@
 `timescale 1ns / 1ns
 
-module read_sensor(GPIO_1, LEDR, box_address, HEX1);
-    input [2:0] GPIO_1;  // Declare GPIO_1 as a 3-bit input
-    output [2:0] LEDR;  
-    output[2:0] box_address;
-    output [6:0] HEX1;
+module read_sensor(input_signal, output_signal, box_addr, hex_display);
+    input [2:0] input_signal; //GPIO 1
+    output [2:0] output_signal; //LEDR
+    output [2:0] box_addr; //box address
+    output [6:0] hex_display; //HEX1
 
-    // first three LEDs to the GPIO inputs so we know the binary value
-    assign LEDR[0] = GPIO_1[0];
-    assign LEDR[1] = GPIO_1[1];
-    assign LEDR[2] = GPIO_1[2];
+    // Logic for read_sensor
+    assign output_signal = input_signal;
+    assign box_addr = input_signal;
 
-    assign box_address = GPIO_1;
     wire [3:0] hex_input;
-    assign hex_input = {1'b0, GPIO_1};  // Adjusted for 3-bit box_mapped
-    hex_decoder samar(hex_input, HEX1);
-
+    assign hex_input = {1'b0, input_signal};
+    hex_decoder decoder(hex_input, hex_display);
 endmodule
+
 
 module hex_decoder(c, display);
     input [3:0] c;

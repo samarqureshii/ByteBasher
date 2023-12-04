@@ -1,55 +1,32 @@
-module Datapath(
-    reset,
-    start_game,
-    hit_detected,
-    sensor_input,
-    lfsr_output,
-    score,
-    game_timer,
-    lfsr_random_value,
-    box_address,
-    GPIO_1,
-    CLOCK_50,
-    HEX0,
-    HEX1,
-    KEY,
-    SW,
-    AUD_ADCDAT, 
-    AUD_BCLK, 
-    AUD_ADCLRCK, 
-    AUD_DACLRCK, 
-    FPGA_I2C_SDAT,
-    AUD_XCK, 
-    AUD_DACDAT, 
-    FPGA_I2C_SCLK,
-    audio_en,
-    mif_control_signal,
-    play_sound,
-    lobby_sound
-);
+    module Datapath(
+        input reset,
+        input start_game, // Signal to start the game
+        input hit_detected, // Signal from FSM when a hit is detected
+        input [2:0] sensor_input, // Input from read_sensor()
+        input [2:0] lfsr_output, // Output from LFSR module
+        output reg [10:0] score, // Score output to FSM
+        output reg [3:0] game_timer, // Game timer
+        //output reg [1:0] difficulty_level, // Difficulty level
+        output [2:0] lfsr_random_value, //straight from the LFSR
+        output [2:0] box_address, //straight from the Arduino
+        input [2:0] GPIO_1,
+        input CLOCK_50,
+        input [6:0] HEX0,
+        input [6:0] HEX1, 
+        input [3:0] KEY,
+        input [3:0] SW,
 
-    input reset;
-    input start_game;
-    input hit_detected;
-    input [2:0] sensor_input;
-    input [2:0] lfsr_output;
-    output reg [10:0] score;
-    output reg [3:0] game_timer;
-    output [2:0] lfsr_random_value;
-    output [2:0] box_address;
-    input [2:0] GPIO_1;
-    input CLOCK_50;
-    input [6:0] HEX0;
-    input [6:0] HEX1;
-    input [3:0] KEY;
-    input [3:0] SW;
-    input AUD_ADCDAT;
-    inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT;
-    output AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK;
-    input audio_en;
-    input [2:0] mif_control_signal;
-    output reg play_sound;
-    output reg lobby_sound;
+        input AUD_ADCDAT, 
+        inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
+        output AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK,
+        input audio_en,  // enable signal for audio
+        
+        input [2:0] mif_control_signal,
+
+        output reg play_sound, //if high, then that means hit detected and 
+        output reg lobby_sound //if high (on the lobby mif,), we play the mario sound 
+        // Additional outputs for VGA, audio, etc.
+    );
 
     wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor
     //assign LEDR_internal = LEDR;
@@ -88,11 +65,10 @@ module Datapath(
     // assign lfsr_random_value = lfsr_address;
     read_sensor arduino_GPIO (
         .GPIO_1(GPIO_1), 
-        .LEDR(LEDR_internal), 
-        .box_address(box_address),  
-        .HEX1(HEX1_internal)
+        .LEDR(LEDR), 
+        .box_address(box_address), 
+        .HEX1(HEX1)
     );
-
 
 
 
