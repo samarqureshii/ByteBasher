@@ -3,18 +3,18 @@
         input start_game, // Signal to start the game
         input hit_detected, // Signal from FSM when a hit is detected
         input [2:0] sensor_input, // Input from read_sensor()
-        input [2:0] lfsr_output, // Output from LFSR module
-        output reg [10:0] score, // Score output to FSM
-        output reg [3:0] game_timer, // Game timer
+        //input [2:0] lfsr_output, // Output from LFSR module
+        //output reg [10:0] score, // Score output to FSM
+        //output reg [3:0] game_timer, // Game timer
         //output reg [1:0] difficulty_level, // Difficulty level
-        output [2:0] lfsr_random_value, //straight from the LFSR
+        //output [2:0] lfsr_random_value, //straight from the LFSR
         output [2:0] box_address, //straight from the Arduino
         input [2:0] GPIO_1,
         input CLOCK_50,
-        input [6:0] HEX0,
-        input [6:0] HEX1, 
+        output [6:0] HEX0,
+        output [6:0] HEX1, 
         input [3:0] KEY,
-        input [3:0] SW,
+        output [3:0] SW,
 
         input AUD_ADCDAT, 
         inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
