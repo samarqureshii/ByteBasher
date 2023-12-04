@@ -54,7 +54,7 @@ reg [22:0] beatCountMario;
 reg [9:0] addressMario; 
 													
 // sound_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
-gameover_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
+mario_rom r1(.address(addressMario), .clock(CLOCK_50), .q(delay));
  
 always @(posedge CLOCK_50) begin
     if (lobby_sound == 1'b1) begin

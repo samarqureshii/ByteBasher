@@ -28,6 +28,12 @@
         // Additional outputs for VGA, audio, etc.
     );
 
+    wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor
+    //assign LEDR_internal = LEDR;
+    wire [6:0] HEX1_internal;  // Internal wire for HEX1 output from read_sensor
+    //assign HEX1_internal = HEX1;
+
+
     // reg [9:3] LEDR_reg;
     // assign LEDR = LEDR_reg;
 
@@ -57,13 +63,14 @@
     // );
 
     // assign lfsr_random_value = lfsr_address;
+    read_sensor arduino_GPIO (
+        .GPIO_1(GPIO_1), 
+        .LEDR(LEDR_internal), 
+        .box_address(box_address),  
+        .HEX1(HEX1_internal)
+    );
 
-    read_sensor arduino_GPIO ( //display the box number on HEX1
-            .GPIO_1(GPIO_1), 
-            .LEDR(LEDR), 
-            .box_address(box_address),  // This wire can be used for further logic if needed
-            .HEX1(HEX1)
-        );
+
 
 
     audio_main audio_unit1( //audio controller for 
