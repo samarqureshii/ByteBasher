@@ -8,7 +8,7 @@ module read_sensor(input_signal, output_signal, box_addr, hex_display);
 
     // Logic for read_sensor
     assign output_signal = input_signal;
-    assign box_addr = input_signal;
+    assign box_addr = input_signal + 1'd1;
 
     wire [3:0] hex_input;
     assign hex_input = {1'b0, input_signal};

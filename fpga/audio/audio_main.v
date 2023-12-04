@@ -1,10 +1,10 @@
 module audio_main (
-	 CLOCK_50, KEY, AUD_ADCDAT, AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
+	 CLOCK_50, resetn, AUD_ADCDAT, AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
 	AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK, audio_en, play_sound
 );
 
 input				CLOCK_50, audio_en;
-input		[3:0]	KEY;
+input		[3:0]	resetn;
 //input [1:0] sound_select;
 input				AUD_ADCDAT;
 input play_sound;
@@ -58,13 +58,13 @@ always @(posedge CLOCK_50) begin
         end else clock_count <= clock_count + 1;
     end
 
-	else begin
+	else begin //when play sound is not 1
         // Reset address count when play_sound is inactive
         addr_count <= 18'b0;
         clock_count <= 11'b0;
     end 
 
-    if(~KEY[0]) begin
+    if(~resetn[0]) begin
         addr_count <= 18'b0;
         clock_count <= 11'b0;
     end
@@ -84,7 +84,7 @@ win_rom ram(.address(address_count), .clock(CLOCK_50), .q(audio_from_ram));
 
 Audio_Controller Audio_Controller (
 	.CLOCK_50					(CLOCK_50),
-	.reset						(~KEY[0]),
+	.reset						(~resetn[0]),
 	.clear_audio_in_memory	(),
 	.read_audio_in				(read_audio_in),
 	.clear_audio_out_memory		(),
@@ -108,6 +108,6 @@ avconf #(.USE_MIC_INPUT(1)) avc (
 	.FPGA_I2C_SCLK					(FPGA_I2C_SCLK),
 	.FPGA_I2C_SDAT					(FPGA_I2C_SDAT),
 	.CLOCK_50					(CLOCK_50),
-	.reset						(~KEY[0])
+	.reset						(~resetn[0])
 );
 endmodule

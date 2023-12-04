@@ -11,7 +11,7 @@
         output [2:0] box_address, //straight from the Arduino
         input [2:0] GPIO_1,
         input CLOCK_50,
-        //output [6:0] HEX0,
+        output [6:0] HEX0,
         output [6:0] HEX1, 
         input [3:0] KEY,
         input [3:0] SW,
@@ -120,9 +120,14 @@
         .VGA_B(VGA_B)
     );
 
+    //testing the current MIF status 
+    wire [3:0] hex_input2;
+    assign hex_input2 = {1'b0, SW};
+    hex_decoder decoder2(hex_input2, HEX0);
+
     //mif control signal is dependent on the switch
-    input [2:0] mif_control_signal;
-    assign mif_control_signal = SW;
+    // input [2:0] mif_control_signal;
+    // assign mif_control_signal = SW;
 
     // //input [2:0] mif_control_signal;
 
@@ -138,7 +143,7 @@
     // // Game logic
     always @(posedge CLOCK_50 or posedge reset) begin
         if (reset) begin //when we click KEY[0], transition to the reset state 
-            score <= 0;
+            //score <= 0;
             //counter <= 0;
             //game_timer <= 6'd0; // Reset game_timer for next game
             //game_over = 1'b0; 
@@ -149,11 +154,11 @@
             //LEDR_reg[9] <= 1'b0;
             // Reset other states
         end 
-        else if (mif_control_signal == 3'b0000) begin //lobby screen (play the start sound)
+        else if (SW == 3'b000) begin //lobby screen (play the start sound)
             lobby_sound <= 1'b1;
         end
 
-        else if (mif_control_signal != 3'b000) begin //game actually starts 
+        else if (SW != 3'b000) begin //game actually starts 
             lobby_sound <= 1'b0;
             //game_timer <= game_timer + 1;
             // if (counter >= 6'd60) begin
@@ -161,12 +166,14 @@
                 
             // end
             // Check if sensor input matches the LFSR box
-            if ((box_address + 1'd1) == mif_control_signal) begin //if the current mif matches the box address
+            if (box_address == SW) begin //if the current mif matches the box address
                 //hit_led <= 1; // Turn on LED 
                 //LEDR_reg[9] <= 1'b1;
                 play_sound <= 1'b1;
-                score <= score + 1; // Increment score 
-            end else begin
+                //score <= score + 1; // Increment score 
+            end 
+            
+            else begin
                 //hit_led <= 0; // Turn off LED
                 //LEDR_reg[9] <= 1'b0;
                 play_sound <= 1'b0;
