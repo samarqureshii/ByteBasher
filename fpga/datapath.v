@@ -1,4 +1,4 @@
-    module Datapath(
+   module Datapath(
         input resetn,
         input start_game, // Signal to start the game
         input hit_detected, // Signal from FSM when a hit is detected
@@ -36,6 +36,9 @@
         output [7:0] VGA_G, 
         output [7:0] VGA_B
     );
+
+reg led;
+assign LEDR[9] = led;
 
     // wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor
     // //assign LEDR_internal = LEDR;
@@ -76,31 +79,31 @@
 
 
 
-    wire				audio_in_available;
-wire		[31:0]	left_channel_audio_in;
-wire		[31:0]	right_channel_audio_in;
-wire				read_audio_in;
-wire [5:0]	audio_from_ram;
-wire				audio_out_allowed;
-wire		[31:0]	left_channel_audio_out;
-wire		[31:0]	right_channel_audio_out;
-wire				write_audio_out;
+    wire audio_in_available;
+wire [31:0] left_channel_audio_in;
+wire [31:0] right_channel_audio_in;
+wire read_audio_in;
+wire [5:0] audio_from_ram;
+wire audio_out_allowed;
+wire [31:0] left_channel_audio_out;
+wire [31:0] right_channel_audio_out;
+wire write_audio_out;
 wire [17:0] address_count;
 
 
 reg [17:0] addr_count, soundstart, soundend;
 reg [10:0] clock_count;
 localparam winstart = 18'd0,
-			  winend = 18'd16395,
-			  moostart = 18'd16396,
-			  mooend = 18'd66982,
-			  detectstart = 18'd66983, 
-			  detectend = 18'd83254,
-			  cheerstart = 18'd83255,
-			  cheerend = 18'd137138;
-			  
+ winend = 18'd16395,
+ moostart = 18'd16396,
+ mooend = 18'd66982,
+ detectstart = 18'd66983, 
+ detectend = 18'd83254,
+ cheerstart = 18'd83255,
+ cheerend = 18'd137138;
+ 
 always @(posedge CLOCK_50) begin
-	if(play_sound == 1'b1 )begin //if we have the correct hit 
+if(play_sound == 1'b1 )begin //if we have the correct hit 
 
         soundstart <= winstart;
         soundend <= winend;
@@ -116,7 +119,7 @@ always @(posedge CLOCK_50) begin
         end else clock_count <= clock_count + 1;
     end
 
-	else begin //when play sound is not 1
+else begin //when play sound is not 1
         // Reset address count when play_sound is inactive
         addr_count <= 18'b0;
         clock_count <= 11'b0;
@@ -132,41 +135,41 @@ end
 assign address_count = addr_count;
 
 
-assign read_audio_in			= audio_in_available & audio_out_allowed;
+assign read_audio_in = audio_in_available & audio_out_allowed;
 assign left_channel_audio_out = {audio_from_ram, 26'b0};
 assign right_channel_audio_out = 32'b0;
-assign write_audio_out			= audio_in_available & audio_out_allowed;
+assign write_audio_out = audio_in_available & audio_out_allowed;
 
  
 win_rom ram(.address(address_count), .clock(CLOCK_50), .q(audio_from_ram));
 
 Audio_Controller Audio_Controller (
-	.CLOCK_50					(CLOCK_50),
-	.reset						(~resetn),
-	.clear_audio_in_memory	(),
-	.read_audio_in				(read_audio_in),
-	.clear_audio_out_memory		(),
-	.left_channel_audio_out		(left_channel_audio_out),
-	.right_channel_audio_out	(right_channel_audio_out),
-	.write_audio_out			(audio_en),
-	.AUD_ADCDAT					(AUD_ADCDAT),
-	.AUD_BCLK					(AUD_BCLK),
-	.AUD_ADCLRCK				(AUD_ADCLRCK),
-	.AUD_DACLRCK				(AUD_DACLRCK),
-	.audio_in_available			(audio_in_available),
-	.left_channel_audio_in		(left_channel_audio_in),
-	.right_channel_audio_in		(right_channel_audio_in),
-	.audio_out_allowed			(audio_out_allowed),
-	.AUD_XCK					(AUD_XCK),
-	.AUD_DACDAT					(AUD_DACDAT)
+.CLOCK_50 (CLOCK_50),
+.reset (~resetn),
+.clear_audio_in_memory (),
+.read_audio_in (read_audio_in),
+.clear_audio_out_memory (),
+.left_channel_audio_out (left_channel_audio_out),
+.right_channel_audio_out (right_channel_audio_out),
+.write_audio_out (audio_en),
+.AUD_ADCDAT (AUD_ADCDAT),
+.AUD_BCLK (AUD_BCLK),
+.AUD_ADCLRCK (AUD_ADCLRCK),
+.AUD_DACLRCK (AUD_DACLRCK),
+.audio_in_available (audio_in_available),
+.left_channel_audio_in (left_channel_audio_in),
+.right_channel_audio_in (right_channel_audio_in),
+.audio_out_allowed (audio_out_allowed),
+.AUD_XCK (AUD_XCK),
+.AUD_DACDAT (AUD_DACDAT)
 
 );
 
 avconf #(.USE_MIC_INPUT(1)) avc (
-	.FPGA_I2C_SCLK					(FPGA_I2C_SCLK),
-	.FPGA_I2C_SDAT					(FPGA_I2C_SDAT),
-	.CLOCK_50					(CLOCK_50),
-	.reset						(~resetn)
+.FPGA_I2C_SCLK (FPGA_I2C_SCLK),
+.FPGA_I2C_SDAT (FPGA_I2C_SDAT),
+.CLOCK_50 (CLOCK_50),
+.reset (~resetn)
 );
 
     // audio_start audio_unit2 (
@@ -229,7 +232,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
             //difficulty_level <= 1;
             //lobby_sound<= 1'b0;
             play_sound = 1'b0; //if we register a hit and the mif_control_signal matches 
-            LEDR[9] = 1'b0;
+            led = 1;
             //incremented_box_address <= 3'b000; 
             //LEDR_reg[9] <= 1'b0;
             // Reset other states
@@ -249,7 +252,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
             if (GPIO_1 == SW) begin //if the current mif matches the box address
                 //hit_led <= 1; // Turn on LED 
                 //LEDR_reg[9] <= 1'b1;
-                LEDR[9] = 1'b1;
+                led = 1;
                 play_sound = 1'b1;
                 //score <= score + 1; // Increment score 
             end 
@@ -258,7 +261,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
                 //hit_led <= 0; // Turn off LED
                 //LEDR_reg[9] <= 1'b0;
                 play_sound = 1'b0;
-                LEDR[9] = 1'b0;
+                led = 0;
                 //score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
             end
         //end

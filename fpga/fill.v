@@ -1,36 +1,22 @@
-module fill
-(
-CLOCK_50, 
-SW,
-KEY,
-// The ports below are for the VGA output.  Do not change.
-VGA_CLK, 
-VGA_HS,
-VGA_VS,
-VGA_BLANK_N,
-VGA_SYNC_N,
-VGA_R,
-VGA_G,
-VGA_B
+module fill (
+    input CLOCK_50, //clock
+    input [2:0] level_select, //SW
+    input resetn, //KEY
+
+    output VGA_CLK, 
+    output VGA_HS,
+    output VGA_VS,
+    output VGA_BLANK_N,
+    output VGA_SYNC_N,
+    output [7:0] VGA_R,   
+    output [7:0] VGA_G,   
+    output [7:0] VGA_B   
 );
 
-input CLOCK_50;
-input [2:0] SW;
-input [1:0] KEY;
+    // Continuous assignment for mif_control_signal
 
-// Declare your inputs and outputs here
-
-output VGA_CLK;
-output VGA_HS;
-output VGA_VS;
-output VGA_BLANK_N;
-output VGA_SYNC_N;
-output [7:0] VGA_R;  
-output [7:0] VGA_G; 
-output [7:0] VGA_B;  
-
-wire resetn;
-assign resetn = KEY[0];
+//wire resetn;
+//assign resetn = KEY[0];
 
 // Create the colour, x, y and writeEn wires that are inputs to the controller.
 
@@ -69,7 +55,7 @@ defparam VGA.BACKGROUND_IMAGE = "start_yay.mif";
 // for the VGA controller, in addition to any other functionality your design may require.
 
 display_game game(
-.current_level(SW[2:0]),
+.current_level(level_select),
 .clock(CLOCK_50),
 .reset(!resetn),
 .colour(colour),
@@ -99,26 +85,26 @@ wire [2:0] colour0, colour1, colour2, colour3, colour4, colour5;
 
 
 // rom instantiation
-start_rom r0 (.clock(clock), .address(address), .q(colour0)); 
-rom_one r1 (.clock(clock), .address(address), .q(colour1));
-rom_two r2 (.clock(clock), .address(address), .q(colour2));
-rom_three r3 (.clock(clock), .address(address), .q(colour3));
-rom_four r4 (.clock(clock), .address(address), .q(colour4));
-rom_end r5 (.clock(clock), .address(address), .q(colour5));                                                                                                                     
+start_rom r0 (.clock(clock), .address(address), .q(colour0)); //empty grid 000
+rom_one r1 (.clock(clock), .address(address), .q(colour1)); // mole in location 001
+rom_two r2 (.clock(clock), .address(address), .q(colour2)); //mole in location 010
+rom_three r3 (.clock(clock), .address(address), .q(colour3)); //mole in location 011
+rom_four r4 (.clock(clock), .address(address), .q(colour4)); //mole in location 100
+rom_end r5 (.clock(clock), .address(address), .q(colour5)); // game over screen 
 
 
 // ROM selector
 always @(posedge clock) begin
-if (reset) begin  
+if (reset) begin
  colour <= colour0; // Assuming you want to reset to colour0
 end else begin
  case (current_level)
-3'b001: colour <= colour0;
-3'b010: colour <= colour1;
-3'b011: colour <= colour2;
-3'b100: colour <= colour3;
-3'b101: colour <= colour4;
-3'b110: colour <= colour5;
+3'b001: colour <= colour0; //star screen 
+3'b010: colour <= colour1; //mole in location 001 (1)
+3'b011: colour <= colour2; //mole in location 010 (2)
+3'b100: colour <= colour3; //mole in location 011 (3)
+3'b101: colour <= colour4; //mole in location 100 (4)
+3'b110: colour <= colour5; //game over screen at SW 110
 // default: colour <= 0;
  endcase
 end 

@@ -1,5 +1,3 @@
-`timescale 1ns / 1ns
-
 module read_sensor(input_signal, output_signal, box_addr, hex_display);
     input [2:0] input_signal; //GPIO 1
     output [2:0] output_signal; //LEDR
@@ -8,10 +6,10 @@ module read_sensor(input_signal, output_signal, box_addr, hex_display);
 
     // Logic for read_sensor
     assign output_signal = input_signal;
-    assign box_addr = input_signal;
+    assign box_addr = input_signal + 1'd1;
 
     wire [3:0] hex_input;
-    assign hex_input = {1'b0, input_signal};
+    assign hex_input = {1'b0, (input_signal)};
     hex_decoder decoder(hex_input, hex_display);
 endmodule
 
