@@ -1,7 +1,8 @@
 module fill (
-    input CLOCK_50,
-    input [2:0] level_select,
-    input resetn,
+    input CLOCK_50, //clock
+    input [2:0] level_select, //SW
+    input resetn, //KEY
+
     output VGA_CLK, 
     output VGA_HS,
     output VGA_VS,
@@ -13,10 +14,9 @@ module fill (
 );
 
     // Continuous assignment for mif_control_signal
-    assign mif_control_signal = SW;
 
 	wire resetn;
-	assign resetn = KEY[0];
+	//assign resetn = KEY[0];
 
 	// Create the colour, x, y and writeEn wires that are inputs to the controller.
 
