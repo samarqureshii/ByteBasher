@@ -1,17 +1,15 @@
 module fill (
-    input CLOCK_50, 
-    input [2:0] SW,
-    input [1:0] KEY,
-    // The ports below are for the VGA output.  Do not change.
+    input CLOCK_50,
+    input [2:0] level_select,
+    input resetn,
     output VGA_CLK, 
     output VGA_HS,
     output VGA_VS,
     output VGA_BLANK_N,
     output VGA_SYNC_N,
-    output [7:0] VGA_R,   // Assuming 8-bit for each color channel
-    output [7:0] VGA_G,   // Assuming 8-bit for each color channel
-    output [7:0] VGA_B,   // Assuming 8-bit for each color channel
-    output [2:0] mif_control_signal
+    output [7:0] VGA_R,   
+    output [7:0] VGA_G,   
+    output [7:0] VGA_B   
 );
 
     // Continuous assignment for mif_control_signal
@@ -57,7 +55,7 @@ module fill (
 	// for the VGA controller, in addition to any other functionality your design may require.
 	
 	display_game game(
-	.current_level(SW[2:0]),
+	.current_level(level_select),
 	.clock(CLOCK_50),
 	.reset(!resetn),
 	.colour(colour),

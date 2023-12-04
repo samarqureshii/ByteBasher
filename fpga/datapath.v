@@ -11,7 +11,7 @@
         output [2:0] box_address, //straight from the Arduino
         input [2:0] GPIO_1,
         input CLOCK_50,
-        output [6:0] HEX0,
+        //output [6:0] HEX0,
         output [6:0] HEX1, 
         input [3:0] KEY,
         output [3:0] SW,
@@ -99,20 +99,19 @@
     //     );
 
 
-    // fill intermediary_datapath ( //vga datapath and FSM
-    //         .CLOCK_50(CLOCK_50),
-    //         .SW(SW),
-    //         .KEY(KEY),
-    //         .VGA_CLK(VGA_CLK),
-    //         .VGA_HS(VGA_HS),
-    //         .VGA_VS(VGA_VS),
-    //         .VGA_BLANK_N(VGA_BLANK_N),
-    //         .VGA_SYNC_N(VGA_SYNC_N),
-    //         .VGA_R(VGA_R),
-    //         .VGA_G(VGA_G),
-    //         .VGA_B(VGA_B),
-    //         .mif_control_signal(mif_control_signal)
-    //     );
+    fill annie (
+        .CLOCK_50(CLOCK_50),
+        .level_select(SW), // Here, SW is mapped to level_select
+        .resetn(KEY[0]), // Assuming KEY[0] is your reset
+        .VGA_CLK(VGA_CLK),
+        .VGA_HS(VGA_HS),
+        .VGA_VS(VGA_VS),
+        .VGA_BLANK_N(VGA_BLANK_N),
+        .VGA_SYNC_N(VGA_SYNC_N),
+        .VGA_R(VGA_R),
+        .VGA_G(VGA_G),
+        .VGA_B(VGA_B)
+    );
 
     // //input [2:0] mif_control_signal;
 
