@@ -21,7 +21,6 @@
         output AUD_XCK, AUD_DACDAT, FPGA_I2C_SCLK,
         input audio_en,  // enable signal for audio
         
-        input [2:0] mif_control_signal,
 
         output reg play_sound, //if high, then that means hit detected and 
         output reg lobby_sound, //if high (on the lobby mif,), we play the mario sound 
@@ -54,8 +53,8 @@
     reg [1:0] current_box;
     reg [3:0] counter; // 4-bit counter for game timer
 
-    wire [2:0] incremented_box_address;
-    assign incremented_box_address = box_address + 1;
+    // wire [2:0] incremented_box_address;
+    // assign incremented_box_address = box_address + 1;
 
 
     //reg reset_signal;
@@ -76,21 +75,20 @@
 
 
 
-    // audio_main audio_unit1( //audio controller for 
-    //     .CLOCK_50(CLOCK_50), 
-    //     .KEY(KEY), 
-    //     .AUD_ADCDAT(AUD_ADCDAT), 
-    //     .AUD_BCLK(AUD_BCLK), 
-    //     .AUD_ADCLRCK(AUD_ADCLRCK), 
-    //     .AUD_DACLRCK(AUD_DACLRCK), 
-    //     .FPGA_I2C_SDAT(FPGA_I2C_SDAT),
-    //     .AUD_XCK(AUD_XCK), 
-    //     .AUD_DACDAT(AUD_DACDAT), 
-    //     .FPGA_I2C_SCLK(FPGA_I2C_SCLK), 
-    //     .audio_en(audio_en), 
-    //     .play_sound(play_sound),
-    //     .SW(4'b0) // Assuming SW is not used in Datapath, set to a default value
-    // );
+    audio_main audio_unit1( //audio controller for 
+        .CLOCK_50(CLOCK_50), 
+        .KEY(KEY), 
+        .AUD_ADCDAT(AUD_ADCDAT), 
+        .AUD_BCLK(AUD_BCLK), 
+        .AUD_ADCLRCK(AUD_ADCLRCK), 
+        .AUD_DACLRCK(AUD_DACLRCK), 
+        .FPGA_I2C_SDAT(FPGA_I2C_SDAT),
+        .AUD_XCK(AUD_XCK), 
+        .AUD_DACDAT(AUD_DACDAT), 
+        .FPGA_I2C_SCLK(FPGA_I2C_SCLK), 
+        .audio_en(audio_en), 
+        .play_sound(play_sound)
+    );
 
     // audio_start audio_unit2 (
     //         .CLOCK_50(CLOCK_50),
@@ -122,6 +120,10 @@
         .VGA_B(VGA_B)
     );
 
+    //mif control signal is dependent on the switch
+    input [2:0] mif_control_signal;
+    assign mif_control_signal = SW;
+
     // //input [2:0] mif_control_signal;
 
     // // counter counter_instance (
@@ -134,44 +136,44 @@
 
 
     // // Game logic
-    // always @(posedge CLOCK_50 or posedge reset) begin
-    //     if (reset) begin //when we click KEY[0], transition to the reset state 
-    //         score <= 0;
-    //         //counter <= 0;
-    //         game_timer <= 6'd0; // Reset game_timer for next game
-    //         //game_over = 1'b0; 
-    //         //difficulty_level <= 1;
-    //         lobby_sound<= 1'b0;
-    //         play_sound <= 1'b0; //if we register a hit and the mif_control_signal matches 
-    //         incremented_box_address <= 3'b000; 
-    //         //LEDR_reg[9] <= 1'b0;
-    //         // Reset other states
-    //     end 
-    //     else if (mif_control_signal == 3'b0000) begin //lobby screen (play the start sound)
-    //         lobby_sound <= 1'b1;
-    //     end
+    always @(posedge CLOCK_50 or posedge reset) begin
+        if (reset) begin //when we click KEY[0], transition to the reset state 
+            score <= 0;
+            //counter <= 0;
+            //game_timer <= 6'd0; // Reset game_timer for next game
+            //game_over = 1'b0; 
+            //difficulty_level <= 1;
+            lobby_sound<= 1'b0;
+            play_sound <= 1'b0; //if we register a hit and the mif_control_signal matches 
+            //incremented_box_address <= 3'b000; 
+            //LEDR_reg[9] <= 1'b0;
+            // Reset other states
+        end 
+        else if (mif_control_signal == 3'b0000) begin //lobby screen (play the start sound)
+            lobby_sound <= 1'b1;
+        end
 
-    //     else if (mif_control_signal != 3'b000) begin //game actually starts 
-    //         lobby_sound <= 1'b0;
-    //         //game_timer <= game_timer + 1;
-    //         // if (counter >= 6'd60) begin
-    //         //     game_over = 1'b1; 
+        else if (mif_control_signal != 3'b000) begin //game actually starts 
+            lobby_sound <= 1'b0;
+            //game_timer <= game_timer + 1;
+            // if (counter >= 6'd60) begin
+            //     game_over = 1'b1; 
                 
-    //         // end
-    //         // Check if sensor input matches the LFSR box
-    //         if (box_address == mif_control_signal) begin //if the current mif matches the box address
-    //             //hit_led <= 1; // Turn on LED 
-    //             //LEDR_reg[9] <= 1'b1;
-    //             play_sound <= 1'b1;
-    //             score <= score + 1; // Increment score 
-    //         end else begin
-    //             //hit_led <= 0; // Turn off LED
-    //             //LEDR_reg[9] <= 1'b0;
-    //             play_sound <= 1'b0;
-    //             //score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
-    //         end
-    //     end
-    // end
+            // end
+            // Check if sensor input matches the LFSR box
+            if ((box_address + 1'd1) == mif_control_signal) begin //if the current mif matches the box address
+                //hit_led <= 1; // Turn on LED 
+                //LEDR_reg[9] <= 1'b1;
+                play_sound <= 1'b1;
+                score <= score + 1; // Increment score 
+            end else begin
+                //hit_led <= 0; // Turn off LED
+                //LEDR_reg[9] <= 1'b0;
+                play_sound <= 1'b0;
+                //score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
+            end
+        end
+    end
 
     // Additional logic for VGA, audio, etc.
 
