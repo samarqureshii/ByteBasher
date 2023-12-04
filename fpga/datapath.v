@@ -12,9 +12,13 @@
         input [2:0] GPIO_1,
         input CLOCK_50,
         output [6:0] HEX0,
-        output [6:0] HEX1, 
+        output [6:0] HEX1,
+        output [6:0] HEX2,
+        output [6:0] HEX3,
+        output [6:0] HEX4,
+        output [6:0] HEX5,
         input [3:0] KEY,
-        input [2:0] SW,
+        input [9:0] SW,
         output [9:0] LEDR,
 
         input AUD_ADCDAT, 
@@ -39,6 +43,7 @@
 
 reg led;
 assign LEDR[9] = led;
+wire [3:0] score;
 
     // wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor
     // //assign LEDR_internal = LEDR;
@@ -77,9 +82,15 @@ assign LEDR[9] = led;
     // assign lfsr_random_value = lfsr_address;
     read_sensor arduino_GPIO (.input_signal(GPIO_1), .output_signal(LEDR[2:0]), .box_addr(box_address), .hex_display(HEX1));
 
+    counter counter_unit (
+        .CLOCK_50(CLOCK_50), 
+        .SW(SW[9:8]),  // Connect only the necessary switches
+        .HEX4(HEX4), 
+        .HEX5(HEX5)
+    );
 
 
-    wire audio_in_available;
+wire audio_in_available;
 wire [31:0] left_channel_audio_in;
 wire [31:0] right_channel_audio_in;
 wire read_audio_in;
@@ -222,10 +233,12 @@ avconf #(.USE_MIC_INPUT(1)) avc (
     // //     );
 
 
+    hex_decoder decoder(score, HEX2);
+
     // // Game logic
     always @(*) begin
         if (resetn) begin //when we click KEY[0], transition to the reset state 
-            //score <= 0;
+            score = 0;
             //counter <= 0;
             //game_timer <= 6'd0; // Reset game_timer for next game
             //game_over = 1'b0; 
@@ -254,6 +267,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
                 //LEDR_reg[9] <= 1'b1;
                 led = 1;
                 play_sound = 1'b1;
+                score = score + 1;
                 //score <= score + 1; // Increment score 
             end 
             
@@ -270,3 +284,5 @@ avconf #(.USE_MIC_INPUT(1)) avc (
     // Additional logic for VGA, audio, etc.
 
     endmodule
+
+    
