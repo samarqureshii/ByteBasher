@@ -14,7 +14,7 @@
         //output [6:0] HEX0,
         output [6:0] HEX1, 
         input [3:0] KEY,
-        output [3:0] SW,
+        input [3:0] SW,
 
         input AUD_ADCDAT, 
         inout AUD_BCLK, AUD_ADCLRCK, AUD_DACLRCK, FPGA_I2C_SDAT,
@@ -24,8 +24,17 @@
         input [2:0] mif_control_signal,
 
         output reg play_sound, //if high, then that means hit detected and 
-        output reg lobby_sound //if high (on the lobby mif,), we play the mario sound 
+        output reg lobby_sound, //if high (on the lobby mif,), we play the mario sound 
         // Additional outputs for VGA, audio, etc.
+
+        output VGA_CLK, 
+        output VGA_HS,
+        output VGA_VS,
+        output VGA_BLANK_N,
+        output VGA_SYNC_N,
+        output [7:0] VGA_R,  
+        output [7:0] VGA_G, 
+        output [7:0] VGA_B
     );
 
     wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor

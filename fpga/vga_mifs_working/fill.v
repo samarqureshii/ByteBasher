@@ -1,21 +1,21 @@
 module fill (
-    input CLOCK_50, //clock
-    input [2:0] level_select, //SW
-    input resetn, //KEY
+    input clk, // Generic clock input
+    input [2:0] game_level, // Generic game level input
+    input reset_signal, // Generic reset input
 
-    output VGA_CLK, 
-    output VGA_HS,
-    output VGA_VS,
-    output VGA_BLANK_N,
-    output VGA_SYNC_N,
-    output [7:0] VGA_R,   
-    output [7:0] VGA_G,   
-    output [7:0] VGA_B   
+    output vga_clk_out, 
+    output vga_hs_out,
+    output vga_vs_out,
+    output vga_blank_n_out,
+    output vga_sync_n_out,
+    output [7:0] vga_r_out,   
+    output [7:0] vga_g_out,   
+    output [7:0] vga_b_out   
 );
 
     // Continuous assignment for mif_control_signal
 
-	wire resetn;
+	//wire resetn;
 	//assign resetn = KEY[0];
 
 	// Create the colour, x, y and writeEn wires that are inputs to the controller.
@@ -29,22 +29,22 @@ module fill (
 	// Define the number of colour and addresses as well as the initial background
 	// image file (.MIF) for the controller.
 	
-	vga_adapter VGA(
-	.resetn(resetn),
-	.clock(CLOCK_50),
-	.colour(colour),
-	.x(x),
-	.y(y),
-	.plot(writeEn),
-	/* Signals for the DAC to drive the monitor. */
-	.VGA_R(VGA_R),
-	.VGA_G(VGA_G),
-	.VGA_B(VGA_B),
-	.VGA_HS(VGA_HS),
-	.VGA_VS(VGA_VS),
-	.VGA_BLANK(VGA_BLANK_N),
-	.VGA_SYNC(VGA_SYNC_N),
-	.VGA_CLK(VGA_CLK));
+	    vga_adapter VGA(
+        .resetn(reset_signal),
+        .clock(clk),
+        .colour(colour),
+        .x(x),
+        .y(y),
+        .plot(writeEn),
+        .VGA_R(vga_r_out),
+        .VGA_G(vga_g_out),
+        .VGA_B(vga_b_out),
+        .VGA_HS(vga_hs_out),
+        .VGA_VS(vga_vs_out),
+        .VGA_BLANK(vga_blank_n_out),
+        .VGA_SYNC(vga_sync_n_out),
+        .VGA_CLK(vga_clk_out)
+    );
 	defparam VGA.RESOLUTION = "160x120";
 	defparam VGA.MONOCHROME = "FALSE";
 	defparam VGA.BITS_PER_COLOUR_CHANNEL = 1;
