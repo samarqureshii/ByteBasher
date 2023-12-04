@@ -63,12 +63,7 @@
     // );
 
     // assign lfsr_random_value = lfsr_address;
-    read_sensor arduino_GPIO (
-        .GPIO_1(GPIO_1), 
-        .LEDR(LEDR), 
-        .box_address(box_address), 
-        .HEX1(HEX1)
-    );
+    read_sensor arduino_GPIO (.input_signal(GPIO_1), .output_signal(LEDR), .box_addr(box_address), .hex_display(HEX1));
 
 
 
