@@ -12,13 +12,9 @@
         input [2:0] GPIO_1,
         input CLOCK_50,
         output [6:0] HEX0,
-        output [6:0] HEX1,
-        output [6:0] HEX2,
-        output [6:0] HEX3,
-        output [6:0] HEX4,
-        output [6:0] HEX5,
+        output [6:0] HEX1, 
         input [3:0] KEY,
-        input [9:0] SW,
+        input [2:0] SW,
         output [9:0] LEDR,
 
         input AUD_ADCDAT, 
@@ -41,24 +37,9 @@
         output [7:0] VGA_B
     );
 
-reg led;
-assign LEDR[9] = led;
-
-reg [3:0] score;
-reg done_signal;
-
-reg use_lfsr; //control signal for whether or not we are using the LFSR value or if we are using the switch value 
-
-wire [2:0] lfsr_box_output;
-wire [6:0] lfsr_hex_output;
-
-
-lfsr_top_level lfsr_instance (
-    .CLOCK_50(CLOCK_50),
-    .reset_signal(resetn),
-    .HEX3(lfsr_hex_output),
-    .box(lfsr_box_output)
-);
+    reg led;
+    assign LEDR[9] = led;
+    reg done_signal;
 
     // wire [2:0] LEDR_internal;  // Internal wire for LEDR output from read_sensor
     // //assign LEDR_internal = LEDR;
@@ -97,16 +78,9 @@ lfsr_top_level lfsr_instance (
     // assign lfsr_random_value = lfsr_address;
     read_sensor arduino_GPIO (.input_signal(GPIO_1), .output_signal(LEDR[2:0]), .box_addr(box_address), .hex_display(HEX1));
 
-    counter counter_unit (
-        .CLOCK_50(CLOCK_50), 
-        .SW(SW[9:8]), 
-        .HEX4(HEX4), 
-        .HEX5(HEX5),
-        .done(done_signal) // Connect the done signal
-    );
 
 
-wire audio_in_available;
+    wire audio_in_available;
 wire [31:0] left_channel_audio_in;
 wire [31:0] right_channel_audio_in;
 wire read_audio_in;
@@ -131,7 +105,6 @@ localparam winstart = 18'd0,
  
 always @(posedge CLOCK_50) begin
 if(play_sound == 1'b1 )begin //if we have the correct hit 
-
         soundstart <= winstart;
         soundend <= winend;
 
@@ -217,10 +190,8 @@ avconf #(.USE_MIC_INPUT(1)) avc (
 
     fill annie (
         .CLOCK_50(CLOCK_50),
-        //.level_select(SW), // Here, SW is mapped to level_select
-        .level_select(lfsr_box_output), //hopefully, the LFSR maps correctly to the VGA
+        .level_select(SW), // Here, SW is mapped to level_select
         .resetn(KEY[0]), // Assuming KEY[0] is your reset
-        .use_lfsr(use_lfsr),
         .VGA_CLK(VGA_CLK),
         .VGA_HS(VGA_HS),
         .VGA_VS(VGA_VS),
@@ -230,6 +201,17 @@ avconf #(.USE_MIC_INPUT(1)) avc (
         .VGA_G(VGA_G),
         .VGA_B(VGA_B)
     );
+
+    reg done_signal;
+    counter count_unit(
+        .CLOCK_50(CLOCK_50),
+        .SW(SW[9:8]),
+        .HEX4(HEX4), 
+        .HEX5(HEX5),
+        //.game_timer(game_timer), // Connect the game_timer
+        .done(done_signal)
+    );
+
 
     //testing the current MIF status 
     wire [3:0] hex_input2;
@@ -251,50 +233,51 @@ avconf #(.USE_MIC_INPUT(1)) avc (
     // //     );
 
 
-    hex_decoder decoder(score, HEX2);
-
     // // Game logic
-    always @(posedge CLOCK_50 or posedge resetn) begin
-        if (resetn) begin
-            // Reset logic
-            score <= 0;
-            led <= 1;
-            use_lfsr <= 0;
-            play_sound <= 1'b0;
-            // Other reset states as needed
+    always @(posedge CLOCK_50) begin
+        if (resetn) begin //when we click KEY[0], transition to the reset state 
+            //score <= 0;
+            //counter <= 0;
+            //game_timer <= 6'd0; // Reset game_timer for next game
+            //game_over = 1'b0; 
+            //difficulty_level <= 1;
+            //lobby_sound<= 1'b0;
+            play_sound = 1'b0; //if we register a hit and the mif_control_signal matches 
+            led = 1;
+            //incremented_box_address <= 3'b000; 
+            //LEDR_reg[9] <= 1'b0;
+            // Reset other states
         end 
-        
-        else begin
-            // When SW input is 001, start using LFSR values
-            if (SW[2:0] == 3'b001) begin
-                use_lfsr <= 1;
-            end
+        // else if (SW == 3'b000) begin //lobby screen (play the start sound)
+        //     lobby_sound <= 1'b1;
+        // end
 
+        // else if (SW != 3'b000) begin //game actually starts 
+        //     lobby_sound <= 1'b0;
+        //     //game_timer <= game_timer + 1;
+        //     // if (counter >= 6'd60) begin
+        //     //     game_over = 1'b1; 
+                
+            // end
             // Check if sensor input matches the LFSR box
-            if (GPIO_1 == SW) begin
-                led <= 1;
-                play_sound <= 1'b1;
-                // Increment score logic here, if applicable
+            if (GPIO_1 == SW) begin //if the current mif matches the box address
+                //hit_led <= 1; // Turn on LED 
+                //LEDR_reg[9] <= 1'b1;
+                led = 1;
+                play_sound = 1'b1;
+                //score <= score + 1; // Increment score 
             end 
             
             else begin
-                led <= 0;
-                play_sound <= 1'b0;
-                // Decrement score logic here, if applicable
+                //hit_led <= 0; // Turn off LED
+                //LEDR_reg[9] <= 1'b0;
+                play_sound = 1'b0;
+                led = 0;
+                //score <= (score > 0) ? score - 1 : 0; // Decrement score if wrong hit
             end
-
-            // When counter is done, switch to 110 and stop using LFSR
-            if (done_signal) begin
-                use_lfsr <= 0;
-            end
-        end
-
+        //end
     end
-
-    
 
     // Additional logic for VGA, audio, etc.
 
     endmodule
-
-    

@@ -2,7 +2,6 @@ module fill (
     input CLOCK_50, //clock
     input [2:0] level_select, //SW
     input resetn, //KEY
-	input use_lfsr,
 
     output VGA_CLK, 
     output VGA_HS,
@@ -21,9 +20,9 @@ module fill (
 
 // Create the colour, x, y and writeEn wires that are inputs to the controller.
 
-// wire [2:0] colour;
-// wire [7:0] x;
-// wire [6:0] y;
+wire [2:0] colour;
+wire [7:0] x;
+wire [6:0] y;
 assign writeEn = 1;
 
 // Create an Instance of a VGA controller - there can be only one!
@@ -57,7 +56,6 @@ defparam VGA.BACKGROUND_IMAGE = "start_yay.mif";
 
 display_game game(
 .current_level(level_select),
-.use_lfsr(use_lfsr),
 .clock(CLOCK_50),
 .reset(!resetn),
 .colour(colour),
@@ -66,27 +64,19 @@ display_game game(
 
 endmodule
 
-module display_game(
-    input [2:0] current_level, // LFSR or switch controlled level
-    input use_lfsr, // Signal to use LFSR or switch input
-    input clock, 
-    input reset, 
-    output reg [2:0] colour, 
-    output reg [7:0] x, 
-    output reg [6:0] y
-);
+module display_game(current_level, clock, reset, colour, x, y);
 
-// input clock;
-// input reset;
+input clock;
+input reset;
 reg [14:0] address;
-// output reg [2:0] colour;
-// output reg [7:0] x;
-// output reg [6:0] y;
+output reg [2:0] colour;
+output reg [7:0] x;
+output reg [6:0] y;
 
 reg [7:0] x_counter;
 reg [6:0] y_counter;
 
-//input [2:0] current_level;
+input [2:0] current_level;
 reg oDone;    
 reg counter_en;
 reg plot_enable;
@@ -103,34 +93,22 @@ rom_four r4 (.clock(clock), .address(address), .q(colour4)); //mole in location 
 rom_end r5 (.clock(clock), .address(address), .q(colour5)); // game over screen 
 
 
-// ROM selector logic
-    always @(posedge clock) begin
-        if (reset) begin
-            colour <= colour0; // Reset to colour0
-        end 
-		
-		else begin
-            if (use_lfsr) begin
-                // Use LFSR value
-                case (current_level)
-                    3'b010: colour <= colour1;
-                    3'b011: colour <= colour2;
-                    3'b100: colour <= colour3;
-                    3'b101: colour <= colour4;
-                    default: colour <= colour0; // Default or other cases
-                endcase
-            end 
-			
-			else begin
-                // Use switch value
-                case (current_level)
-                    3'b001: colour <= colour1; // Controlled by switch
-                    3'b110: colour <= colour5; // Controlled by switch
-                    default: colour <= colour0; // Default or other cases
-                endcase
-            end
-        end
-    end
+// ROM selector
+always @(posedge clock) begin
+if (reset) begin
+ colour <= colour0; // Assuming you want to reset to colour0
+end else begin
+ case (current_level)
+3'b001: colour <= colour0; //star screen 
+3'b010: colour <= colour1; //mole in location 001 (1)
+3'b011: colour <= colour2; //mole in location 010 (2)
+3'b100: colour <= colour3; //mole in location 011 (3)
+3'b101: colour <= colour4; //mole in location 100 (4)
+3'b110: colour <= colour5; //game over screen at SW 110
+// default: colour <= 0;
+ endcase
+end 
+end
 
 // datapath
 always@(posedge clock)
