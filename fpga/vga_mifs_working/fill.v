@@ -3,6 +3,9 @@ module fill (
     input [2:0] level_select, //SW
     input resetn, //KEY
 
+	input use_lfsr, // New input to control randomization
+    input [2:0] lfsr_output, // Output from LFSR module
+
     output VGA_CLK, 
     output VGA_HS,
     output VGA_VS,
@@ -55,12 +58,13 @@ defparam VGA.BACKGROUND_IMAGE = "start_yay.mif";
 // for the VGA controller, in addition to any other functionality your design may require.
 
 display_game game(
-.current_level(level_select),
-.clock(CLOCK_50),
-.reset(!resetn),
-.colour(colour),
-.x(x),
-.y(y));
+    .current_level(use_lfsr ? lfsr_output : level_select), // Use LFSR output if use_lfsr is high, else use level_select
+    .clock(CLOCK_50),
+    .reset(!resetn),
+    .colour(colour),
+    .x(x),
+    .y(y)
+);
 
 endmodule
 
