@@ -101,7 +101,9 @@ rom_end r5 (.clock(clock), .address(address), .q(colour5)); // game over screen
 always @(posedge clock) begin
 if (reset) begin
  colour <= colour0; // Assuming you want to reset to colour0
-end else begin
+end 
+
+else begin
  case (current_level)
 3'b001: colour <= colour0; //star screen 
 3'b010: colour <= colour1; //mole in location 001 (1)

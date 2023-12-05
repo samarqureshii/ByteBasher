@@ -1,60 +1,55 @@
 `timescale 1ns / 1ns
 
+`timescale 1ns / 1ns
+
 module lfsr_top_level(CLOCK_50, reset_signal, HEX3, box);
     input CLOCK_50;
     input reset_signal;
-    //input [3:0] KEY;
     output [6:0] HEX3;
-    output [2:0] box; //this is the initialization signal for the VGA 
+    output [2:0] box;
 
-    reg [2:0] seed = 3'b001; // Initial seed value
+    reg [2:0] seed = 3'b001;
     wire [2:0] lfsr_out;
-    wire [1:0] box_mapped;
-    //wire [3:0] hex_input;
-    //wire reset_signal = ~KEY[0]; // Active low reset signal
-    reg previous_reset_state = 1'b0; // To detect reset signal edges
-
-    // Free-running counter for seeding
+    reg previous_reset_state = 1'b0;
     reg [2:0] free_running_counter = 3'b000;
+
     always @(posedge CLOCK_50) begin
         free_running_counter <= free_running_counter + 1;
     end
 
     lfsr_3bit lfsr (
         .out(lfsr_out),
-        .enable(enable_pulse), // Connect the enable signal from the rate divider
+        .enable(enable_pulse),
         .clk(CLOCK_50),
         .reset(reset_signal),
         .seed(seed)
     );
-    //instantiate the rate divider 
+
     wire enable_pulse;
     RateDivider #(50000000) rate_divider_instance (
         .ClockIn(CLOCK_50), 
         .Reset(reset_signal),
-        .Enable(enable_pulse) // This will pulse high every second
+        .Enable(enable_pulse)
     );
 
-    // LFSR reset and reseed logic
     always @(posedge CLOCK_50 or posedge reset_signal) begin
         if (reset_signal) begin
-            // Capture the free-running counter value as a new seed on reset
             if (!previous_reset_state) begin
                 seed <= free_running_counter;
             end
             previous_reset_state <= 1'b1;
-        end 
-        
-        else begin
+        end else begin
             previous_reset_state <= 1'b0;
         end
     end
 
-    // Rest of the logic remains the same
-    map_lfsr_to_boxes map_lfsr (.lfsr_out(lfsr_out), .box(box_mapped));
-    assign lfsr_HEX = {1'b0, box_mapped};
-    hex_decoder hd_lfsr(lfsr_HEX, HEX3); //test the 
+    // Directly display LFSR output on HEX3
+    hex_decoder hd_lfsr({1'b0, lfsr_out}, HEX3);
+
+    map_lfsr_to_boxes map_lfsr (.lfsr_out(lfsr_out), .box(box));
 endmodule
+
+
 
 module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [2:0] box); //box is the MIF that we will flash
     always @(lfsr_out) begin
