@@ -1,66 +1,72 @@
 `timescale 1ns / 1ns
 
-`timescale 1ns / 1ns
+module lfsr_top_level(CLOCK_50, reset_signal, HEX3, box);
+    input CLOCK_50;
+    input reset_signal,
+    //input [3:0] KEY;
+    output [6:0] HEX3;
+    output [2:0] box; //this is the initialization signal for the VGA 
 
-`timescale 1ns / 1ns
+    reg [2:0] seed = 3'b001; // Initial seed value
+    wire [2:0] lfsr_out;
+    wire [1:0] box_mapped;
+    //wire [3:0] hex_input;
+    //wire reset_signal = ~KEY[0]; // Active low reset signal
+    reg previous_reset_state = 1'b0; // To detect reset signal edges
 
-module lfsr_top_level(
-    input CLOCK_50,
-    input [3:0] KEY,
-    output [6:0] HEX0,
-    output reg [2:0] lfsr_address // Changed to reg
-);
-
-    reg [3:0] counter = 4'b0000; // Increased counter size for a larger LUT
-
-    // Expanded LUT with more 'random' values
-    reg [2:0] lut [0:15]; // Expanded LUT size
-
-    initial begin
-        // Initialize the LUT with more varied values
-        lut[0] = 3'b001; lut[1] = 3'b010; lut[2] = 3'b011; lut[3] = 3'b100;
-        lut[4] = 3'b001; lut[5] = 3'b011; lut[6] = 3'b010; lut[7] = 3'b100;
-        lut[8] = 3'b011; lut[9] = 3'b001; lut[10] = 3'b100; lut[11] = 3'b010;
-        lut[12] = 3'b100; lut[13] = 3'b011; lut[14] = 3'b001; lut[15] = 3'b010;
-    end
-
-    // Modified counter logic to jump around the LUT
+    // Free-running counter for seeding
+    reg [2:0] free_running_counter = 3'b000;
     always @(posedge CLOCK_50) begin
-        if (~KEY[0]) // Reset condition
-            counter <= 4'b0000;
-        else
-            counter <= counter + 4'b0011; // Change increment value for variety
+        free_running_counter <= free_running_counter + 1;
     end
 
-    // Update the lfsr_address from the lookup table
-    always @(posedge CLOCK_50) begin
-        lfsr_address <= lut[counter[3:0]]; // Use 4 bits of the counter for LUT indexing
+    lfsr_3bit lfsr (
+        .out(lfsr_out),
+        .enable(enable_pulse), // Connect the enable signal from the rate divider
+        .clk(CLOCK_50),
+        .reset(reset_signal),
+        .seed(seed)
+    );
+    //instantiate the rate divider 
+    wire enable_pulse;
+    RateDivider #(50000000) rate_divider_instance (
+        .ClockIn(CLOCK_50), 
+        .Reset(reset_signal),
+        .Enable(enable_pulse) // This will pulse high every second
+    );
+
+    // LFSR reset and reseed logic
+    always @(posedge CLOCK_50 or posedge reset_signal) begin
+        if (reset_signal) begin
+            // Capture the free-running counter value as a new seed on reset
+            if (!previous_reset_state) begin
+                seed <= free_running_counter;
+            end
+            previous_reset_state <= 1'b1;
+        end 
+        
+        else begin
+            previous_reset_state <= 1'b0;
+        end
     end
 
-    // Hex display logic remains the same
-    wire [3:0] hex_input = {1'b0, lfsr_address};
-    hex_decoder_lfsr hd_lfsr(hex_input, HEX0);
-
+    // Rest of the logic remains the same
+    map_lfsr_to_boxes map_lfsr (.lfsr_out(lfsr_out), .box(box_mapped));
+    assign lfsr_HEX = {1'b0, box_mapped};
+    hex_decoder hd_lfsr(lfsr_HEX, HEX3); //test the 
 endmodule
 
-
-// ... (Other modules remain the same)
-
-
-module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [2:0] box);
+module map_lfsr_to_boxes(input [2:0] lfsr_out, output reg [2:0] box); //box is the MIF that we will flash
     always @(lfsr_out) begin
         case(lfsr_out)
-            // Mapping the 3-bit LFSR output to 3-bit box values
-            3'b001, 3'b010: box = 3'b001; // Box 1
-            3'b011:         box = 3'b010; // Box 2
-            3'b100, 3'b101: box = 3'b011; // Box 3
-            3'b110, 3'b111: box = 3'b100; // Box 4
-            default:        box = 3'b001; // Default case
+            3'b001, 3'b010: box = 3'b010; // Box 2
+            3'b011: box = 3'b011; // Box 3
+            3'b100, 3'b101: box = 3'b100; // Box 4
+            3'b110, 3'b111: box = 3'b101; // Box 5
+            default: box = 3'b001; // Default case, can also be an error state
         endcase
     end
 endmodule
-
-
 
 // Modify lfsr_3bit module to accept a seed input
 module lfsr_3bit (out, enable, clk, reset, seed);
@@ -76,25 +82,28 @@ module lfsr_3bit (out, enable, clk, reset, seed);
         if (reset) begin
             out <= seed; // Initialize with seed at reset
         end else if (enable) begin
+            // Update the LFSR only when enable is high
             out <= {out[1:0], linear_feedback};
         end
     end
 endmodule
 
-module hex_decoder_lfsr(c, display);
-    input [3:0] c;
-    output [6:0] display;
-    
-    assign c0 = c[0];
-    assign c1 = c[1];
-    assign c2 = c[2];
-    assign c3 = c[3];
 
-    assign display[0] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
-    assign display[1] = (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
-    assign display[2] = (~c3 & ~c2 & c1 & ~c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0); 
-    assign display[3] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0) + (c3 & ~c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
-    assign display[4] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0);
-    assign display[5] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & ~c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
-    assign display[6] = (~c3 & ~c2 & ~c1 & ~c0) + (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0);
-endmodule
+
+// module hex_decoder(c, display);
+//     input [3:0] c;
+//     output [6:0] display;
+    
+//     assign c0 = c[0];
+//     assign c1 = c[1];
+//     assign c2 = c[2];
+//     assign c3 = c[3];
+
+//     assign display[0] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
+//     assign display[1] = (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & ~c0) + (c3 & ~c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
+//     assign display[2] = (~c3 & ~c2 & c1 & ~c0) + (c3 & c2 & ~c1 & ~c0) + (c3 & c2 & c1 & ~c0) + (c3 & c2 & c1 & c0); 
+//     assign display[3] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0) + (c3 & ~c2 & c1 & ~c0) + (c3 & c2 & c1 & c0);
+//     assign display[4] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & ~c1 & ~c0) + (~c3 & c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & ~c2 & ~c1 & c0);
+//     assign display[5] = (~c3 & ~c2 & ~c1 & c0) + (~c3 & ~c2 & c1 & ~c0) + (~c3 & ~c2 & c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & c0);
+//     assign display[6] = (~c3 & ~c2 & ~c1 & ~c0) + (~c3 & ~c2 & ~c1 & c0) + (~c3 & c2 & c1 & c0) + (c3 & c2 & ~c1 & ~c0);
+// endmodule

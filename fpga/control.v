@@ -33,7 +33,7 @@ module Control();
                 //once the counter hits 20, assert a control signal that 
                 if (box_address!=4b'0000) //if the binary read from the Arduino is not 0
                     next_state = S_HIT_DETECTED;
-                else if (counter == d'60) //once the counter hits 60
+                else if (counter == d'99) //once the counter hits 60
                     next_state = S_GAME_OVER;
                 else if(~KEY[0])
                     reset = 1'b1;

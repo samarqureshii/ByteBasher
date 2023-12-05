@@ -2,6 +2,7 @@ module fill (
     input CLOCK_50, //clock
     input [2:0] level_select, //SW
     input resetn, //KEY
+	input use_lfsr,
 
     output VGA_CLK, 
     output VGA_HS,
@@ -56,6 +57,7 @@ defparam VGA.BACKGROUND_IMAGE = "start_yay.mif";
 
 display_game game(
 .current_level(level_select),
+.use_lfsr(use_lfsr),
 .clock(CLOCK_50),
 .reset(!resetn),
 .colour(colour),
@@ -64,10 +66,18 @@ display_game game(
 
 endmodule
 
-module display_game(current_level, clock, reset, colour, x, y);
+module display_game(
+    input [2:0] current_level, // LFSR or switch controlled level
+    input use_lfsr, // Signal to use LFSR or switch input
+    input clock, 
+    input reset, 
+    output reg [2:0] colour, 
+    output reg [7:0] x, 
+    output reg [6:0] y
+);
 
-input clock;
-input reset;
+// input clock;
+// input reset;
 reg [14:0] address;
 output reg [2:0] colour;
 output reg [7:0] x;
@@ -93,22 +103,34 @@ rom_four r4 (.clock(clock), .address(address), .q(colour4)); //mole in location 
 rom_end r5 (.clock(clock), .address(address), .q(colour5)); // game over screen 
 
 
-// ROM selector
-always @(posedge clock) begin
-if (reset) begin
- colour <= colour0; // Assuming you want to reset to colour0
-end else begin
- case (current_level)
-3'b001: colour <= colour0; //star screen 
-3'b010: colour <= colour1; //mole in location 001 (1)
-3'b011: colour <= colour2; //mole in location 010 (2)
-3'b100: colour <= colour3; //mole in location 011 (3)
-3'b101: colour <= colour4; //mole in location 100 (4)
-3'b110: colour <= colour5; //game over screen at SW 110
-// default: colour <= 0;
- endcase
-end 
-end
+// ROM selector logic
+    always @(posedge clock) begin
+        if (reset) begin
+            colour <= colour0; // Reset to colour0
+        end 
+		
+		else begin
+            if (use_lfsr) begin
+                // Use LFSR value
+                case (current_level)
+                    3'b010: colour <= colour1;
+                    3'b011: colour <= colour2;
+                    3'b100: colour <= colour3;
+                    3'b101: colour <= colour4;
+                    default: colour <= colour0; // Default or other cases
+                endcase
+            end 
+			
+			else begin
+                // Use switch value
+                case (current_level)
+                    3'b001: colour <= colour1; // Controlled by switch
+                    3'b110: colour <= colour5; // Controlled by switch
+                    default: colour <= colour0; // Default or other cases
+                endcase
+            end
+        end
+    end
 
 // datapath
 always@(posedge clock)

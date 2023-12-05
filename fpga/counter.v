@@ -4,16 +4,18 @@ module counter (
     input [9:8] SW, 
     output [6:0] HEX4, 
     output [6:0] HEX5,
-    output [5:0] game_timer // 6-bit output for the game timer
+    output [5:0] game_timer, // 6-bit output for the game timer
+    output done // Done signal when count exceeds 99
 ); 
     wire [3:0] onesValue, tensValue;
-    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[8], onesValue, tensValue, game_timer);
+    counter_m #(50000000) tpc (CLOCK_50, SW[9], SW[8], onesValue, tensValue, game_timer, done);
 
     hex_decoder hd_ones (onesValue, HEX4); //ones place (HEX4)
     hex_decoder hd_tens (tensValue, HEX5); //tens place (HEX5)
 endmodule
 
 // Updated counter_m module to include game_timer output
+// Updated counter_m module to include game_timer output and done signal
 module counter_m
     #(parameter CLOCK_FREQUENCY = 50000000)(
     input ClockIn,
@@ -21,7 +23,8 @@ module counter_m
     input [1:0] Speed,
     output [3:0] OnesCounterValue,
     output [3:0] TensCounterValue,
-    output [5:0] game_timer // 6-bit output for the game timer
+    output [5:0] game_timer, // 6-bit output for the game timer
+    output done // Done signal
 );
     wire Enable;
     wire TensIncrement;
@@ -34,7 +37,10 @@ module counter_m
     // Concatenate tens and ones to form the game_timer
     assign game_timer = {TensCounterValue, OnesCounterValue};
 
+    // Generate done signal when both ones and tens are 9
+    assign done = (OnesCounterValue == 4'b1001) && (TensCounterValue == 4'b1001);
 endmodule
+
 
 // Updated DisplayCounter module with MaxCountReached logic
 module DisplayCounter (
