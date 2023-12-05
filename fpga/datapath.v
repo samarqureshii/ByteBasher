@@ -13,8 +13,11 @@
         input CLOCK_50,
         output [6:0] HEX0,
         output [6:0] HEX1, 
+        output [6:0] HEX3,
+        output [6:0] HEX4, 
+        output [6:0] HEX5,
         input [3:0] KEY,
-        input [2:0] SW,
+        input [9:0] SW,
         output [9:0] LEDR,
 
         input AUD_ADCDAT, 
@@ -94,14 +97,11 @@
     //     );
 
 
-    always @* begin //are we using LFSR or not?
-        use_lfsr_signal = !(SW[9] == 3'b001 || SW[9] == 3'b110);
-    end
-
+    assign use_lfsr_signal = SW[9];
     
     fill annie (
         .CLOCK_50(CLOCK_50),
-        .level_select(SW[2:0]), // SW input to determine whether ot no
+        .level_select(SW[2:0]), // SW input for displaying the current mif 
         .use_lfsr(use_lfsr_signal), // Control signal to determine whether or not we are using LFSR or not 
         .lfsr_output(lfsr_box_output), // Output from LFSR module
         .resetn(KEY[0]),
@@ -116,10 +116,10 @@
         .VGA_B(VGA_B)
     );
 
-    reg done_signal;
+    wire done_signal;
     counter count_unit(
         .CLOCK_50(CLOCK_50),
-        .SW(SW[9:8]),
+        .SW(SW[8:7]),
         .HEX4(HEX4), 
         .HEX5(HEX5),
         //.game_timer(game_timer), // Connect the game_timer
