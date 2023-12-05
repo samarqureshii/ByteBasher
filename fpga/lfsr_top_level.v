@@ -2,7 +2,7 @@
 
 module lfsr_top_level(CLOCK_50, reset_signal, HEX3, box);
     input CLOCK_50;
-    input reset_signal,
+    input reset_signal;
     //input [3:0] KEY;
     output [6:0] HEX3;
     output [2:0] box; //this is the initialization signal for the VGA 

@@ -41,8 +41,9 @@
         output [7:0] VGA_B
     );
 
-wire led;
+reg led;
 assign LEDR[9] = led;
+
 reg [3:0] score;
 reg done_signal;
 
@@ -257,7 +258,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
         if (resetn) begin
             // Reset logic
             score <= 0;
-            led = 1;
+            led <= 1;
             use_lfsr <= 0;
             play_sound <= 1'b0;
             // Other reset states as needed
@@ -271,7 +272,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
 
             // Check if sensor input matches the LFSR box
             if (GPIO_1 == SW) begin
-                led = 1;
+                led <= 1;
                 play_sound <= 1'b1;
                 // Increment score logic here, if applicable
             end 
@@ -287,6 +288,7 @@ avconf #(.USE_MIC_INPUT(1)) avc (
                 use_lfsr <= 0;
             end
         end
+
     end
 
     

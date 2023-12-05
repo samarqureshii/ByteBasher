@@ -21,9 +21,9 @@ module fill (
 
 // Create the colour, x, y and writeEn wires that are inputs to the controller.
 
-wire [2:0] colour;
-wire [7:0] x;
-wire [6:0] y;
+// wire [2:0] colour;
+// wire [7:0] x;
+// wire [6:0] y;
 assign writeEn = 1;
 
 // Create an Instance of a VGA controller - there can be only one!
@@ -79,14 +79,14 @@ module display_game(
 // input clock;
 // input reset;
 reg [14:0] address;
-output reg [2:0] colour;
-output reg [7:0] x;
-output reg [6:0] y;
+// output reg [2:0] colour;
+// output reg [7:0] x;
+// output reg [6:0] y;
 
 reg [7:0] x_counter;
 reg [6:0] y_counter;
 
-input [2:0] current_level;
+//input [2:0] current_level;
 reg oDone;    
 reg counter_en;
 reg plot_enable;
