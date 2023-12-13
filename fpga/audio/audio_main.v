@@ -30,48 +30,40 @@ wire				write_audio_out;
 wire [17:0] address_count;
 
 
-reg [17:0] addr_count, soundstart, soundend;
+reg [17:0] rom_address_curr, soundstart, soundend;
 reg [10:0] clock_count;
-localparam winstart = 18'd0,
-			  winend = 18'd16395,
-			  moostart = 18'd16396,
-			  mooend = 18'd66982,
-			  detectstart = 18'd66983, 
-			  detectend = 18'd83254,
-			  cheerstart = 18'd83255,
-			  cheerend = 18'd137138;
 			  
 always @(posedge CLOCK_50) begin
 	if(play_sound == 1'b1 )begin //if we have the correct hit 
 
-        soundstart <= winstart;
-        soundend <= winend;
+        soundstart <= 18'd0;
+        soundend <= 18'd16395;
 
         // Existing logic to cycle through audio addresses
         if (clock_count == 11'd1200) begin
-            if (addr_count == soundend) begin 
-                addr_count <= soundstart;
-            end else if ((addr_count >= soundstart) && (addr_count < soundend)) begin
-                addr_count <= addr_count + 1'b1;
+            if (rom_address_curr == soundend) begin 
+                rom_address_curr <= soundstart;
+            end else if ((rom_address_curr >= soundstart) && (rom_address_curr < soundend)) begin
+                rom_address_curr <= rom_address_curr + 1'b1;
                 clock_count <= 0;
-            end else addr_count <= soundstart;
+            end else rom_address_curr <= soundstart;
         end else clock_count <= clock_count + 1;
     end
 
 	else begin //when play sound is not 1
         // Reset address count when play_sound is inactive
-        addr_count <= 18'b0;
+        rom_address_curr <= 18'b0;
         clock_count <= 11'b0;
     end 
 
     if(~resetn) begin
-        addr_count <= 18'b0;
+        rom_address_curr <= 18'b0;
         clock_count <= 11'b0;
     end
 end
 
 
-assign address_count = addr_count;
+assign address_count = rom_address_curr;
 
 
 assign read_audio_in			= audio_in_available & audio_out_allowed;

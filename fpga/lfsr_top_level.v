@@ -32,7 +32,7 @@ module lfsr_top_level(CLOCK_50, reset_signal, HEX3, box);
         .Enable(enable_pulse)
     );
 
-    always @(posedge CLOCK_50 or posedge reset_signal) begin
+    always @(posedge CLOCK_50) begin
         if (reset_signal) begin
             if (!previous_reset_state) begin
                 seed <= free_running_counter;

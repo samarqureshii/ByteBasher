@@ -136,15 +136,15 @@
     // input [2:0] mif_control_signal;
     // assign mif_control_signal = SW;
 
-    // //input [2:0] mif_control_signal;
+    //input [2:0] mif_control_signal;
 
-    // // counter counter_instance (
-    // //         .CLOCK_50(CLOCK_50), 
-    // //         .SW({2'b00, control_SW}),  // Assuming only two switches are used for control
-    // //         .HEX4(HEX4), 
-    // //         .HEX5(HEX5),
-    // //         .game_timer(game_timer)
-    // //     );
+    // counter counter_instance (
+    //         .CLOCK_50(CLOCK_50), 
+    //         .SW({2'b00, control_SW}),  // Assuming only two switches are used for control
+    //         .HEX4(HEX4), 
+    //         .HEX5(HEX5),
+    //         .game_timer(game_timer)
+    //     );
 
 
     wire [2:0] lfsr_box_output;
@@ -215,42 +215,38 @@
     wire [17:0] address_count;
 
 
-    reg [17:0] addr_count, soundstart, soundend;
-    reg [10:0] clock_count;
-    localparam winstart = 18'd0,
-    winend = 18'd16395,
-    moostart = 18'd16396,
-    mooend = 18'd66982,
-    detectstart = 18'd66983, 
-    detectend = 18'd83254,
-    cheerstart = 18'd83255,
-    cheerend = 18'd137138;
+    reg [17:0] addr_count;
+    reg [11:0] clock_count;
+
     
     always @(posedge CLOCK_50) begin
     if(play_sound == 1'b1 )begin //if we have the correct hit 
-            soundstart <= winstart;
-            soundend <= winend;
 
-            // Existing logic to cycle through audio addresses
-            if (clock_count == 11'd1200) begin
-                if (addr_count == soundend) begin 
-                    addr_count <= soundstart;
-                end else if ((addr_count >= soundstart) && (addr_count < soundend)) begin
+            //  cycle through audio addresses
+            if (clock_count == 12'd2400) begin //
+                if (addr_count == 18'd16395) begin 
+                    addr_count <= 18'd0;
+                end 
+                
+                else if ((addr_count >= 18'd0) && (addr_count < 18'd16395)) begin
                     addr_count <= addr_count + 1'b1;
                     clock_count <= 0;
-                end else addr_count <= soundstart;
+                end 
+                
+                else addr_count <= 18'd0; 
             end else clock_count <= clock_count + 1;
         end
 
     else begin //when play sound is not 1
             // Reset address count when play_sound is inactive
+            //hold the address at 0
             addr_count <= 18'b0;
-            clock_count <= 11'b0;
+            clock_count <= 12'b0;
         end 
 
         if(~resetn) begin
             addr_count <= 18'b0;
-            clock_count <= 11'b0;
+            clock_count <= 12'b0;
         end
     end
 

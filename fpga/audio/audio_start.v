@@ -74,10 +74,15 @@ always @(posedge CLOCK_50) begin
             end else begin
                 delay_cnt <= delay_cnt + 1;
             end
-        end else begin
+        end 
+        
+        else begin
             beatCountMario <= beatCountMario + 1;
         end
-    end else begin
+        
+    end 
+    
+    else begin
         // Reset logic if lobby_sound is not asserted
         addressMario <= 0;
         beatCountMario <= 0;

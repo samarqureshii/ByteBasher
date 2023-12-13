@@ -8,7 +8,7 @@ module Control();
                S_RESET = 3'd6;
 
     reg [2:0] current_state, next_state;
-    reg [1:0] difficulty;
+    //reg [1:0] difficulty;
     output reg [100:0] score;
     // more control enable signals here 
 
@@ -19,7 +19,7 @@ module Control();
                 // transition to S_START_GAME when start HIGH from KEY0
                 if (iStart) //if iStart is enabled (controlled by KEY1)
                     next_state = S_START_GAME;
-                    difficulty = 2b'01;
+                    //difficulty = 2b'01;
                     lobby_sound = 1'b0
                 else //keep waiting in the lobby
                 //MIF in this state should be the lobby

@@ -61,8 +61,9 @@ always @(posedge CLOCK_50)
 	end else delay_cnt <= delay_cnt + 1;
 
 always @(posedge CLOCK_50) begin
-	if(beatCountMario == 23'd2500000)begin
-		beatCountMario <= 23'b0;
+	if (lobby_sound) begin
+		if(beatCountMario == 23'd2500000)begin
+			beatCountMario <= 23'b0;
 		if(addressMario < 10'd999)
 			addressMario <= addressMario + 1;
 		else begin
@@ -72,6 +73,11 @@ always @(posedge CLOCK_50) begin
 	end
 	else 
 		beatCountMario <= beatCountMario + 1;
+	end
+	else
+		addressMario <= 0;
+		beatCountMario <= 0;
+		snd <= 0;
 end
 
 wire [31:0] sound = (lobby_sound && snd) ? 32'd100000000 : -32'd100000000;
@@ -79,7 +85,8 @@ wire [31:0] sound = (lobby_sound && snd) ? 32'd100000000 : -32'd100000000;
 assign read_audio_in			= audio_in_available & audio_out_allowed;
 assign left_channel_audio_out	= left_channel_audio_in+sound;
 assign right_channel_audio_out	= left_channel_audio_in+sound;
-assign write_audio_out			= audio_in_available & audio_out_allowed;
+assign write_audio_out = lobby_sound && audio_in_available && audio_out_allowed;
+
 
 Audio_Controller Audio_Controller (
 	.CLOCK_50					(CLOCK_50),
